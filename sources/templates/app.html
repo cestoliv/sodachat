@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SODACHAT</title>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <script src="/static/js/vue.min.js"></script>
+    <script src="/static/js/ckeditor/build/ckeditor.js"></script>
+    <script src="/static/js/vue-cookies.js"></script>
+    <script src="/static/js/axios.min.js"></script>
+
+    <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="/static/css/add_contacts_panel.css">
+    <link rel="stylesheet" href="/static/css/contacts_panel.css">
+    <link rel="stylesheet" href="/static/css/messages_panel.css">
+    <link rel="stylesheet" href="/static/css/sign_panel.css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicons/site.webmanifest">
+    <link rel="mask-icon" href="/static/favicons/safari-pinned-tab.svg" color="#72a98f">
+    <link rel="shortcut icon" href="/static/favicons/favicon.ico">
+    <meta name="msapplication-TileColor" content="#111111">
+    <meta name="msapplication-config" content="/static/favicons/browserconfig.xml">
+    <meta name="theme-color" content="#111111">
+</head>
+<body>
+    <div id="app">
+        <div id="error" :class="{ showed: showed }">
+            <p v-html="content"></p>
+        </div>
+
+        <div id="contacts" :class="{ showed: showed }">
+            <div id="sodachat_logo">
+                <img src="/static/imgs/logo_green.svg">
+            </div>
+            
+            <div id="contacts_list">
+                <ul :class="{ showed: loaded }">
+                    <li class="contact" v-for="contact in contacts" @click="show_messages(contact)">
+                        <img src="/static/imgs/profile-user.svg" />
+                        <div>
+                            <p class="contact_pseudo" v-html="contact.name"></p>
+                            <p class="contact_last_message" v-html="contact.last_message.content" :class="{ seen: contact.last_message.seen == 1 }"></p>
+                        </div>
+                    </li>
+                </ul>
+
+                <svg id="contacts_loading" :class="{ showed: !loaded }" xmlns:dc="http://purl.org/dc/elements/1.1/"   xmlns:cc="http://creativecommons.org/ns#"   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"   xmlns:svg="http://www.w3.org/2000/svg"   xmlns="http://www.w3.org/2000/svg"   width="256mm"   height="256mm"   viewBox="0 0 256 256"   version="1.1" >  <defs     id="defs2" />  <metadata     id="metadata5">    <rdf:RDF>      <cc:Work         rdf:about="">        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />        <dc:title></dc:title>      </cc:Work>    </rdf:RDF>  </metadata>  <g     id="layer1"     transform="translate(0,-41)">    <path       style="stroke:none;stroke-width:64.20901489;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"       d="M 483.7793 0 A 483.77952 483.77952 0 0 0 0 483.7793 A 483.77952 483.77952 0 0 0 483.7793 967.55859 A 483.77952 483.77952 0 0 0 967.55859 483.7793 L 861.73242 483.7793 A 377.95276 377.95276 0 0 1 483.7793 861.73242 A 377.95276 377.95276 0 0 1 105.82617 483.7793 A 377.95276 377.95276 0 0 1 483.7793 105.82617 L 483.7793 0 z "       transform="matrix(0.26458333,0,0,0.26458333,0,41)"       id="path815" />  </g></svg>
+            </div>
+
+            <div class="separator"></div>
+            
+            <div id="settings_bar">
+                <svg @click="logout()" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"	 viewBox="0 0 297 297" style="enable-background:new 0 0 297 297;" xml:space="preserve"><g>	<g>		<g>			<path d="M155,6.5c-30.147,0-58.95,9.335-83.294,26.995c-2.789,2.023-3.547,5.853-1.739,8.787L92.83,79.374				c0.962,1.559,2.53,2.649,4.328,3.004c1.796,0.354,3.661-0.054,5.145-1.129c14.23-10.323,31.069-15.78,48.698-15.78				c45.783,0,83.03,37.247,83.03,83.03c0,45.783-37.247,83.03-83.03,83.03c-17.629,0-34.468-5.456-48.698-15.78				c-1.484-1.076-3.349-1.486-5.145-1.129c-1.798,0.355-3.366,1.444-4.328,3.004l-22.863,37.093				c-1.808,2.934-1.05,6.763,1.739,8.787C96.05,281.165,124.853,290.5,155,290.5c78.299,0,142-63.701,142-142S233.299,6.5,155,6.5z"				/>			<path d="M90.401,201.757c1.147-2.142,1.021-4.74-0.326-6.76l-15.463-23.195h93.566c12.849,0,23.302-10.453,23.302-23.302				s-10.453-23.302-23.302-23.302H74.612l15.463-23.195c1.348-2.02,1.473-4.618,0.326-6.76c-1.146-2.141-3.377-3.478-5.806-3.478				H40.019c-2.201,0-4.258,1.1-5.479,2.933L1.106,144.847c-1.475,2.212-1.475,5.093,0,7.306l33.433,50.149				c1.221,1.832,3.278,2.933,5.479,2.933h44.577C87.025,205.235,89.256,203.898,90.401,201.757z"/>		</g>	</g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g></svg>
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"><g>	<g>		<path d="M500.6,212.6l-59.9-14.7c-3.3-10.5-7.5-20.7-12.6-30.6l30.6-51c3.6-6,2.7-13.5-2.1-18.3L414,55.4			c-4.8-4.8-12.3-5.7-18.3-2.1l-51,30.6c-9.9-5.1-20.1-9.3-30.6-12.6l-14.4-59.9C297.9,4.8,291.9,0,285,0h-60			c-6.9,0-12.9,4.8-14.7,11.4l-14.4,59.9c-10.5,3.3-20.7,7.5-30.6,12.6l-51-30.6c-6-3.6-13.5-2.7-18.3,2.1L53.4,98			c-4.8,4.8-5.7,12.3-2.1,18.3l30.6,51c-5.1,9.9-9.3,20.1-12.6,30.6l-57.9,14.7C4.8,214.1,0,220.1,0,227v60			c0,6.9,4.8,12.9,11.4,14.4l57.9,14.7c3.3,10.5,7.5,20.7,12.6,30.6l-30.6,51c-3.6,6-2.7,13.5,2.1,18.3L96,458.6			c4.8,4.8,12.3,5.7,18.3,2.1l51-30.6c9.9,5.1,20.1,9.3,30.6,12.6l14.4,57.9c1.8,6.6,7.8,11.4,14.7,11.4h60			c6.9,0,12.9-4.8,14.7-11.4l14.4-57.9c10.5-3.3,20.7-7.5,30.6-12.6l51,30.6c6,3.6,13.5,2.7,18.3-2.1l42.6-42.6			c4.8-4.8,5.7-12.3,2.1-18.3l-30.6-51c5.1-9.9,9.3-20.1,12.6-30.6l59.9-14.7c6.6-1.5,11.4-7.5,11.4-14.4v-60			C512,220.1,507.2,214.1,500.6,212.6z M255,332c-41.4,0-75-33.6-75-75c0-41.4,33.6-75,75-75c41.4,0,75,33.6,75,75			C330,298.4,296.4,332,255,332z"/>	</g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" height="136pt" version="1.1" viewBox="-1 0 136 136.21852" width="136pt"><g id="surface1"><path d="M 93.148438 80.832031 C 109.5 57.742188 104.03125 25.769531 80.941406 9.421875 C 57.851562 -6.925781 25.878906 -1.460938 9.53125 21.632812 C -6.816406 44.722656 -1.351562 76.691406 21.742188 93.039062 C 38.222656 104.707031 60.011719 105.605469 77.394531 95.339844 L 115.164062 132.882812 C 119.242188 137.175781 126.027344 137.347656 130.320312 133.269531 C 134.613281 129.195312 134.785156 122.410156 130.710938 118.117188 C 130.582031 117.980469 130.457031 117.855469 130.320312 117.726562 Z M 51.308594 84.332031 C 33.0625 84.335938 18.269531 69.554688 18.257812 51.308594 C 18.253906 33.0625 33.035156 18.269531 51.285156 18.261719 C 69.507812 18.253906 84.292969 33.011719 84.328125 51.234375 C 84.359375 69.484375 69.585938 84.300781 51.332031 84.332031 C 51.324219 84.332031 51.320312 84.332031 51.308594 84.332031 Z M 51.308594 84.332031 " style=" stroke:none;" /></g></svg>
+                <svg @click="add_contacts()" height="448pt" viewBox="0 0 448 448" width="448pt" xmlns="http://www.w3.org/2000/svg"><path d="m408 184h-136c-4.417969 0-8-3.582031-8-8v-136c0-22.089844-17.910156-40-40-40s-40 17.910156-40 40v136c0 4.417969-3.582031 8-8 8h-136c-22.089844 0-40 17.910156-40 40s17.910156 40 40 40h136c4.417969 0 8 3.582031 8 8v136c0 22.089844 17.910156 40 40 40s40-17.910156 40-40v-136c0-4.417969 3.582031-8 8-8h136c22.089844 0 40-17.910156 40-40s-17.910156-40-40-40zm0 0"/></svg>
+            </div>
+        </div>
+
+        <div id="add_contacts" :class="{ showed: showed }">
+
+            <svg @click="show_messages()" class="close_add_contacts" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g inkscape:label="Calque 1" inkscape:groupmode="layer" id="layer1"><g id="g5775" transform="matrix(0.88387413,0.88387413,-0.88387413,0.88387413,128,-98.271777)"><rect ry="14" transform="rotate(90)" y="-256" x="103" height="256" width="50" id="rect5127-9" style="opacity:1;stroke:none;stroke-width:21.15614891;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /><rect ry="14" y="0" x="103" height="256" width="50" id="rect5127-9-9" style="opacity:1;stroke:none;stroke-width:21.15614891;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /></g></g></svg>
+
+            <p class="add_contact_title">Add a contact by its username</p>
+
+            <p class="request_sent" :class="{ showed: request_send_message_showed }">request sent</p>
+
+            <input type="text" v-model="username_input" placeholder="Username" :class="{ disabled: !username_input_enabled }" />
+
+            <button @click="add_contact" :class="{ loading: add_contact_loading }">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"	 viewBox="0 0 485.725 485.725" xml:space="preserve"><g>	<g>		<path d="M459.835,196.758L73.531,9.826C48.085-2.507,17.46,8.123,5.126,33.569c-6.289,12.975-6.815,28-1.449,41.384			l60.348,150.818h421.7C481.285,213.048,471.972,202.611,459.835,196.758z"/>	</g></g><g>	<g>		<path d="M64.025,259.904L3.677,410.756c-10.472,26.337,2.389,56.177,28.726,66.65c5.963,2.371,12.319,3.603,18.736,3.631			c7.754,0,15.408-1.75,22.391-5.12l386.304-187c12.137-5.854,21.451-16.291,25.89-29.013H64.025z"/>	</g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g></svg>
+                <svg xmlns:dc="http://purl.org/dc/elements/1.1/"   xmlns:cc="http://creativecommons.org/ns#"   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"   xmlns:svg="http://www.w3.org/2000/svg"   xmlns="http://www.w3.org/2000/svg"   width="256mm"   height="256mm"   viewBox="0 0 256 256"   version="1.1" >  <defs     id="defs2" />  <metadata     id="metadata5">    <rdf:RDF>      <cc:Work         rdf:about="">        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />        <dc:title></dc:title>      </cc:Work>    </rdf:RDF>  </metadata>  <g     id="layer1"     transform="translate(0,-41)">    <path       style="stroke:none;stroke-width:64.20901489;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"       d="M 483.7793 0 A 483.77952 483.77952 0 0 0 0 483.7793 A 483.77952 483.77952 0 0 0 483.7793 967.55859 A 483.77952 483.77952 0 0 0 967.55859 483.7793 L 861.73242 483.7793 A 377.95276 377.95276 0 0 1 483.7793 861.73242 A 377.95276 377.95276 0 0 1 105.82617 483.7793 A 377.95276 377.95276 0 0 1 483.7793 105.82617 L 483.7793 0 z "       transform="matrix(0.26458333,0,0,0.26458333,0,41)"       id="path815" />  </g></svg>
+            </button>
+        </div>
+
+        <div id="messages" :class="{ showed: showed }">
+            <div class="messages_infos">
+                <div id="return_to_contact" @click="hide_messages">
+                    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 492 492" xml:space="preserve"><g>	<g>		<path d="M464.344,207.418l0.768,0.168H135.888l103.496-103.724c5.068-5.064,7.848-11.924,7.848-19.124			c0-7.2-2.78-14.012-7.848-19.088L223.28,49.538c-5.064-5.064-11.812-7.864-19.008-7.864c-7.2,0-13.952,2.78-19.016,7.844			L7.844,226.914C2.76,231.998-0.02,238.77,0,245.974c-0.02,7.244,2.76,14.02,7.844,19.096l177.412,177.412			c5.064,5.06,11.812,7.844,19.016,7.844c7.196,0,13.944-2.788,19.008-7.844l16.104-16.112c5.068-5.056,7.848-11.808,7.848-19.008			c0-7.196-2.78-13.592-7.848-18.652L134.72,284.406h329.992c14.828,0,27.288-12.78,27.288-27.6v-22.788			C492,219.198,479.172,207.418,464.344,207.418z"/>	</g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g></svg>
+                </div>
+                <p class="contact_pseudo" v-html="contact.name"></p>
+            </div>
+
+            <ul id="messages_list">
+                <li class="message" v-for="(message, index) in messages" :class="message.sender">
+                    <div><p v-html="message.content" @click="toggle_message_date(message)"></p></div>
+                    <p v-if="message.show_date || index == messages.length - 1" v-html="message.date_string" @click="toggle_message_date(message)"></p>
+                </li>
+            </ul>
+
+            <div id="message_entry">
+                <div id="message_editor"></div>
+                <div id="message_send" @click="send_message" :class="{ loading: is_sending }">
+                    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"	 viewBox="0 0 485.725 485.725" xml:space="preserve"><g>	<g>		<path d="M459.835,196.758L73.531,9.826C48.085-2.507,17.46,8.123,5.126,33.569c-6.289,12.975-6.815,28-1.449,41.384			l60.348,150.818h421.7C481.285,213.048,471.972,202.611,459.835,196.758z"/>	</g></g><g>	<g>		<path d="M64.025,259.904L3.677,410.756c-10.472,26.337,2.389,56.177,28.726,66.65c5.963,2.371,12.319,3.603,18.736,3.631			c7.754,0,15.408-1.75,22.391-5.12l386.304-187c12.137-5.854,21.451-16.291,25.89-29.013H64.025z"/>	</g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g></svg>
+                    <svg xmlns:dc="http://purl.org/dc/elements/1.1/"   xmlns:cc="http://creativecommons.org/ns#"   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"   xmlns:svg="http://www.w3.org/2000/svg"   xmlns="http://www.w3.org/2000/svg"   width="256mm"   height="256mm"   viewBox="0 0 256 256"   version="1.1" >  <defs     id="defs2" />  <metadata     id="metadata5">    <rdf:RDF>      <cc:Work         rdf:about="">        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />        <dc:title></dc:title>      </cc:Work>    </rdf:RDF>  </metadata>  <g     id="layer1"     transform="translate(0,-41)">    <path       style="stroke:none;stroke-width:64.20901489;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"       d="M 483.7793 0 A 483.77952 483.77952 0 0 0 0 483.7793 A 483.77952 483.77952 0 0 0 483.7793 967.55859 A 483.77952 483.77952 0 0 0 967.55859 483.7793 L 861.73242 483.7793 A 377.95276 377.95276 0 0 1 483.7793 861.73242 A 377.95276 377.95276 0 0 1 105.82617 483.7793 A 377.95276 377.95276 0 0 1 483.7793 105.82617 L 483.7793 0 z "       transform="matrix(0.26458333,0,0,0.26458333,0,41)"       id="path815" />  </g></svg>
+                </div>
+            </div>
+
+            <div class="messages_loading" v-if="messages_loading">
+                <svg class="messages_loading_spinner" xmlns:dc="http://purl.org/dc/elements/1.1/"   xmlns:cc="http://creativecommons.org/ns#"   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"   xmlns:svg="http://www.w3.org/2000/svg"   xmlns="http://www.w3.org/2000/svg"   width="256mm"   height="256mm"   viewBox="0 0 256 256"   version="1.1" >  <defs     id="defs2" />  <metadata     id="metadata5">    <rdf:RDF>      <cc:Work         rdf:about="">        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />        <dc:title></dc:title>      </cc:Work>    </rdf:RDF>  </metadata>  <g     id="layer1"     transform="translate(0,-41)">    <path       style="stroke:none;stroke-width:64.20901489;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"       d="M 483.7793 0 A 483.77952 483.77952 0 0 0 0 483.7793 A 483.77952 483.77952 0 0 0 483.7793 967.55859 A 483.77952 483.77952 0 0 0 967.55859 483.7793 L 861.73242 483.7793 A 377.95276 377.95276 0 0 1 483.7793 861.73242 A 377.95276 377.95276 0 0 1 105.82617 483.7793 A 377.95276 377.95276 0 0 1 483.7793 105.82617 L 483.7793 0 z "       transform="matrix(0.26458333,0,0,0.26458333,0,41)"       id="path815" />  </g></svg>
+            </div>
+        </div>
+
+        <div id="messages_placeholder" :class="{ showed: showed }">
+            <p>Select a discussion to start chatting!</p>
+        </div>
+
+        <div id="sign" :class="{ showed: showed }">
+            <img class="sign_logo" src="/static/imgs/logo_green.svg">
+            <p class="sign_title" :class="{ showed: signup }">Create an account</p>
+            <p class="sign_title" :class="{ showed: !signup }">Sign in</p>
+            <div class="sign_inputs">
+                <input type="text" class="name_input" v-model="name_input" :class="{ showed: signup }" placeholder="Name" />
+                <input type="text" v-model="username_input" placeholder="Username" />
+                <input type="password" v-model="password_input" placeholder="Password" />
+            </div>
+            <a @click="set_up()" class="sign_toggle" :class="{ showed: !signup }">I don't yet have an account</a>
+            <a @click="set_in()" class="sign_toggle" :class="{ showed: signup }">I already have an account</a>
+            <button @click="sign" :class="{ loading: sign_loading }">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"	 viewBox="0 0 485.725 485.725" xml:space="preserve"><g>	<g>		<path d="M459.835,196.758L73.531,9.826C48.085-2.507,17.46,8.123,5.126,33.569c-6.289,12.975-6.815,28-1.449,41.384			l60.348,150.818h421.7C481.285,213.048,471.972,202.611,459.835,196.758z"/>	</g></g><g>	<g>		<path d="M64.025,259.904L3.677,410.756c-10.472,26.337,2.389,56.177,28.726,66.65c5.963,2.371,12.319,3.603,18.736,3.631			c7.754,0,15.408-1.75,22.391-5.12l386.304-187c12.137-5.854,21.451-16.291,25.89-29.013H64.025z"/>	</g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g></svg>
+                <svg xmlns:dc="http://purl.org/dc/elements/1.1/"   xmlns:cc="http://creativecommons.org/ns#"   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"   xmlns:svg="http://www.w3.org/2000/svg"   xmlns="http://www.w3.org/2000/svg"   width="256mm"   height="256mm"   viewBox="0 0 256 256"   version="1.1" >  <defs     id="defs2" />  <metadata     id="metadata5">    <rdf:RDF>      <cc:Work         rdf:about="">        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />        <dc:title></dc:title>      </cc:Work>    </rdf:RDF>  </metadata>  <g     id="layer1"     transform="translate(0,-41)">    <path       style="stroke:none;stroke-width:64.20901489;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"       d="M 483.7793 0 A 483.77952 483.77952 0 0 0 0 483.7793 A 483.77952 483.77952 0 0 0 483.7793 967.55859 A 483.77952 483.77952 0 0 0 967.55859 483.7793 L 861.73242 483.7793 A 377.95276 377.95276 0 0 1 483.7793 861.73242 A 377.95276 377.95276 0 0 1 105.82617 483.7793 A 377.95276 377.95276 0 0 1 483.7793 105.82617 L 483.7793 0 z "       transform="matrix(0.26458333,0,0,0.26458333,0,41)"       id="path815" />  </g></svg>
+            </button>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app_editor.js"></script>
+</body>
+</html>

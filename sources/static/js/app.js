@@ -1,0 +1,650 @@
+var user = {}
+
+var app = document.getElementById("app")
+
+var socket = io()
+
+socket.on('connect', () => {
+	console.log("connected to socket")
+})
+
+date_to_relative_date = (u_date) => {
+    u_date = new Date(u_date)
+    let formatter = new Intl.RelativeTimeFormat(undefined, {
+        localeMatcher: "best fit",
+        numeric: "always",
+        style: "long",
+    })
+
+    let divisions = [
+        { amount: 60, name: 'seconds' },
+        { amount: 60, name: 'minutes' },
+        { amount: 24, name: 'hours' },
+        { amount: 7, name: 'days' },
+        { amount: 4.34524, name: 'weeks' },
+        { amount: 12, name: 'months' },
+        { amount: Number.POSITIVE_INFINITY, name: 'years' }
+    ]
+      
+    let duration = (u_date - new Date()) / 1000
+        
+    for (i = 0; i <= divisions.length-1; i++) {
+        let division = divisions[i]
+        if (Math.abs(duration) < division.amount) {
+            return `${formatter.format(Math.round(duration), division.name)}`
+        }
+        duration /= division.amount
+    }
+
+    return "Invalid Date"
+}
+
+var contacts, messages, messages_placeholder, sign, error, add_contacts
+
+show = (what) => {
+	app.classList.remove("sign")
+	app.classList.remove("messages_placeholder")
+	app.classList.remove("add_contacts")
+	app.classList.remove("messages")
+
+	contacts.hide()
+	add_contacts.hide()
+	messages.hide()
+	messages_placeholder.hide()
+	sign.hide()
+
+	switch(what) {
+		case 'sign':
+			app.classList.add("sign")
+			sign.show()
+			break
+		case 'messages_placeholder':
+			app.classList.add("messages_placeholder")
+			contacts.show()
+			messages_placeholder.show()
+			break
+		case 'messages':
+			app.classList.add("messages")
+			contacts.show()
+			messages.show()
+			break
+		case 'add_contacts':
+			app.classList.add("add_contacts")
+			add_contacts.show()
+			break
+	}
+}
+
+contacts = new Vue({
+    el: '#contacts',
+    data: {
+		showed: false,
+		loaded: false,
+
+        contacts: []
+    },
+	mounted: () => {
+		setInterval(() => {
+			contacts.reorder_contacts()
+		}, 20000) // reorder_contacts every 20secs
+	},
+    methods: {
+		show() {
+			this.showed = true
+		},
+		hide() {
+			this.showed = false
+		},
+		show_messages(contact) {
+			//set has seen
+			contact.last_message.seen = 1
+			messages.load(contact)
+
+			show("messages")
+		},
+		add_contact(contact) {
+			// set to seen if it's the user message
+			if(contact["last_message"].sender_uid == user.uid) {
+				contact["last_message"].seen = 1
+			}
+
+			// remove html tags of last_message content
+			if(contact["last_message"]["content"] != undefined) {
+				contact["last_message"]["content"] = contact["last_message"]["content"].replace( /(<([^>]+)>)/ig, '')
+			}
+
+			this.contacts.push(contact)
+		},
+		change_last_message_of_uid(message) {
+			// set to seen if it's the user message
+			if(message.sender_uid == user.uid) {
+				message.seen = 1
+			}
+
+			// remove html tags of last_message content
+			if(message.content != undefined) {
+				message.content = message.content.replace( /(<([^>]+)>)/ig, '')
+			}
+
+			for(i_contact in this.contacts) {
+				if(this.contacts[i_contact].uid == message.sender_uid ||
+					this.contacts[i_contact].uid == message.receiver_uid) {
+					this.contacts[i_contact].last_message = message
+				}
+			}
+
+			this.reorder_contacts()
+		},
+		set_contacts(contacts) {
+			this.contacts = []
+			for(i_contacts in contacts) {
+				this.add_contact(contacts[i_contacts])
+			}
+		},
+		reorder_contacts() {
+			contacts.set_contacts(
+				contacts.contacts.sort((a, b) => {
+					let a_timestamp = a.timestamp
+					let b_timestamp = b.timestamp
+					
+					if(a.last_message.content) {
+						  a_timestamp = a.last_message.timestamp
+					}
+					if(b.last_message.content) {
+						b_timestamp = b.last_message.timestamp
+					}
+					
+					return new Date(b_timestamp) - new Date(a_timestamp)
+				})
+			)
+		},
+		load() {
+			this.contacts = []
+			this.loaded = false
+
+			var formData = new FormData()
+			formData.append("token", user.jwt)
+
+			axios.post("/api/v1/contacts/get", formData).then((response) => {
+				if(response["data"]["status"] == "success") {
+					this.set_contacts(response["data"]["contacts"])
+					this.loaded = true
+				}
+				else {
+					error.change_content("An unexpected error occurred")
+					error.show()
+					this.loaded = false
+				}
+				this.sign_loading = false
+				this.reorder_contacts()
+			}).catch((err) => {
+				console.error(err)
+				error.change_content("An unexpected error occurred")
+				error.show()
+				this.loaded = false
+			})
+		},
+		logout() {
+			sign.logout()
+		},
+		add_contacts() {
+			show("add_contacts")
+		}
+    }
+})
+
+messages = new Vue({
+    el: '#messages',
+    data: {
+		showed: false,
+
+		messages_loading: true,
+		is_sending: false,
+
+		contact: {},
+
+        messages: []
+    },
+	mounted: () => {
+		setInterval(() => {
+			messages.refresh_dates()
+		}, 10000) // refresh date every 10secs
+		setInterval(() => {
+			messages.reorder_messages()
+		}, 20000) // reorder_messages every 20secs
+	},
+    methods: {
+		show() {
+			this.showed = true
+		},
+		hide() {
+			this.showed = false
+		},
+		hide_messages() {
+			show("messages_placeholder")
+		},
+		toggle_message_date(message) {
+			if(message.show_date) {
+				message.show_date = false
+			}
+			else {
+				message.show_date = true
+			}
+		},
+		set_contact(contact) {
+			this.contact = contact
+		},
+		set_messages(messages) {
+			this.messages = []
+			for(messages_i in messages) {
+				this.add_message(messages[messages_i])
+			}
+		},
+		add_message(message) {
+			// check if there's not still the message
+			for(i_message in this.messages) {
+				if(this.messages[i_message]["id"] == message.id) {
+					return
+				}
+			}
+
+			message["date_string"] = date_to_relative_date(message["timestamp"])
+			message["sender"] = "contact"
+			if(message["sender_uid"] == user.uid) {
+				message["sender"] = "me"
+				message["seen"] = 1
+			}
+			message["show_date"] = false
+
+			this.messages.push(message)
+
+			Vue.nextTick(() => {
+				this.scroll_to_last_message()
+			})
+
+			// set message has seen
+			if(message["seen"] == 0) {
+				var formData = new FormData()
+				formData.append("token", user.jwt)
+				formData.append("message_ids", message["id"])
+
+				axios.post("/api/v1/messages/seen", formData).then((response) => {
+					if(response["data"]["status"] == "success") {
+					}
+					else {
+						if(response["data"]["code"] == "0001") {
+							error.change_content("This message is not for you")
+						}
+						else {
+							error.change_content("An unexpected error occurred")
+						}
+						error.show()
+					}
+				}).catch((err) => {
+					console.error(err)
+					error.change_content("An unexpected error occurred")
+					error.show()
+				})
+			}
+		},
+		refresh_dates() {
+			for(messages_i in this.messages) {
+				this.messages[messages_i]["date_string"] = date_to_relative_date(this.messages[messages_i].timestamp)
+			}
+		},
+		reorder_messages() {
+			this.set_messages(
+				messages.messages.sort((a, b) => {
+					return new Date(a.timestamp) - new Date(b.timestamp)
+				})
+			)
+		},
+		send_message() {
+			message_editor.focus()
+			if(message_editor.getData() == "") {
+				return
+			}
+			if(this.is_sending) {
+				return
+			}
+
+			var formData = new FormData()
+			formData.append("token", user.jwt)
+			formData.append("receiver_uid", this.contact.uid)
+			formData.append("content", message_editor.getData())
+
+			message_editor.isReadOnly = true
+			this.is_sending = true
+
+			axios.post("/api/v1/messages/send", formData).then((response) => {
+				if(response["data"]["status"] == "success") {
+					message_data = {
+						"id": response["data"]["id"],
+						"sender_uid": response["data"]["sender_uid"],
+						"receiver_uid": response["data"]["receiver_uid"],
+						"timestamp": response["data"]["timestamp"],
+						"content": message_editor.getData(),
+						"seen": response["data"]["seen"],
+					}
+
+					this.add_message(message_data)
+
+					// change message_data for contacts panel
+					//message_data.sender_uid = this.contact.uid
+					message_data.seen = 1
+					contacts.change_last_message_of_uid(message_data)
+
+					message_editor.setData("")
+				}
+				else {
+					if(response["data"]["code"] == "0001") {
+						error.change_content("This person is not one of your contacts")
+					}
+					else {
+						error.change_content("An unexpected error occurred")
+					}
+					error.show()
+				}
+
+				message_editor.isReadOnly = false
+				this.is_sending = false
+			}).catch((err) => {
+				console.error(err)
+				error.change_content("An unexpected error occurred")
+				error.show()
+				message_editor.isReadOnly = false
+				this.is_sending = false
+			})
+		},
+		scroll_to_last_message() {
+			if(document.getElementById("messages_list").children.length > 0) {
+				document.getElementById("messages_list").lastChild.scrollIntoView({behavior: 'smooth'})
+			}
+		},
+		load(contact) {
+			this.contact = contact
+			this.messages_loading = true
+
+			var formData = new FormData()
+			formData.append("token", user.jwt)
+			formData.append("receiver_uid", this.contact.uid)
+
+			axios.post("/api/v1/messages/get", formData).then((response) => {
+				if(response["data"]["status"] == "success") {
+					this.set_messages(response["data"]["messages"])
+					show("messages")
+				}
+				else {
+					error.change_content("An unexpected error occurred")
+					error.show()
+					this.contact = {}
+				}
+				this.messages_loading = false
+			}).catch((err) => {
+				console.error(err)
+				error.change_content("An unexpected error occurred")
+				error.show()
+				this.messages_loading = false
+				this.contact = {}
+			})
+		}
+    }
+})
+
+messages_placeholder = new Vue({
+    el: '#messages_placeholder',
+    data: {
+		showed: false,
+    },
+    methods: {
+		show() {
+			this.showed = true
+		},
+		hide() {
+			this.showed = false
+		}
+    }
+})
+
+sign = new Vue({
+    el: '#sign',
+    data: {
+		showed: false,
+		sign_loading: false,
+		signup: false,
+
+		name_input: "",
+		username_input: "",
+		password_input: ""
+	},
+	mounted() {
+		this.$cookies.config('30d','','',false) // expire, path, domain, secure
+
+		if(!this.$cookies.get('user') || this.$cookies.get('user') == undefined) {
+			this.show()
+			return
+		}
+
+		var formData = new FormData()
+		formData.append("token", this.$cookies.get('user').jwt)
+
+		axios.post("/api/v1/users/check-token", formData).then((response) => {
+			if(response["data"]["status"] == "success") {
+				user = response["data"]
+
+				socket.emit('register', {jwt: user.jwt})
+				show("messages_placeholder")
+				
+				contacts.load()
+			}
+			else {
+				user = {}
+				this.$cookies.remove('user')
+				show("sign")
+			}
+		}).catch((err) => {
+			this.show()
+			console.error(err)
+			error.change_content("An unexpected error occurred")
+			error.show()
+		})
+	},
+    methods: {
+		show() {
+			this.showed = true
+		},
+		hide() {
+			this.showed = false
+		},
+		set_up() {
+			this.signup = true
+		},
+		set_in() {
+			this.signup = false
+		},
+		sign() {
+			this.sign_loading = true
+			if(this.signup) {
+				var formData = new FormData()
+				formData.append("name", this.name_input)
+				formData.append("username", this.username_input)
+				formData.append("password", this.password_input)
+
+				axios.post("/api/v1/users/signup", formData).then((response) => {
+					if(response["data"]["status"] == "success") {
+						user = response["data"]
+
+						this.$cookies.set('user', user)
+						socket.emit('register', {jwt: user.jwt})
+						
+						this.name_input = ""
+						this.username_input = ""
+						this.password_input = ""
+						show("messages_placeholder")
+						contacts.load()
+					}
+					else {
+						if(response["data"]["code"] == "0001") {
+							error.change_content("This username is already assigned")
+						}
+						else {
+							error.change_content("An unexpected error occurred")
+						}
+
+						error.show()
+					}
+					this.sign_loading = false
+				}).catch((err) => {
+					console.error(err)
+					error.change_content("An unexpected error occurred")
+					error.show()
+					this.sign_loading = false
+				})
+			}
+			else {
+				var formData = new FormData()
+				formData.append("username", this.username_input)
+				formData.append("password", this.password_input)
+
+				axios.post("/api/v1/users/signin", formData).then((response) => {
+					if(response["data"]["status"] == "success") {
+						user = response["data"]
+
+						this.$cookies.set('user', user)
+						socket.emit('register', {jwt: user.jwt})
+						
+						this.name_input = ""
+						this.username_input = ""
+						this.password_input = ""
+						show("messages_placeholder")
+						contacts.load()
+					}
+					else {
+						if(response["data"]["code"] == "0001") {
+							error.change_content("One of your login is incorrect")
+						}
+						else {
+							error.change_content("An unexpected error occurred")
+						}
+
+						error.show()
+					}
+					this.sign_loading = false
+				}).catch((err) => {
+					console.error(err)
+					error.change_content("An unexpected error occurred")
+					error.show()
+					this.sign_loading = false
+				})
+			}
+		},
+		logout() {
+			this.set_in()
+			user = {}
+			this.$cookies.remove('user')
+			show("sign")
+		}
+    }
+})
+
+add_contacts = new Vue({
+    el: '#add_contacts',
+    data: {
+		showed: false,
+		add_contact_loading: false,
+		username_input_enabled: true,
+		request_send_message_showed: false,
+
+		username_input: ""
+	},
+	mounted() {
+	},
+    methods: {
+		show() {
+			this.showed = true
+		},
+		hide() {
+			this.showed = false
+		},
+		show_messages() {
+			contacts.load()
+			show("messages")
+		},
+		add_contact() {
+			this.add_contact_loading = true
+			this.username_input_enabled = false
+			this.request_send_message_showed = false
+			
+			var formData = new FormData()
+			formData.append("token", user.jwt)
+			formData.append("contact_username", this.username_input)
+
+			axios.post("/api/v1/contacts/add", formData).then((response) => {
+				if(response["data"]["status"] == "success") {
+					this.username_input = ""
+					this.request_send_message_showed = true
+
+					setTimeout(() => {
+						this.request_send_message_showed = false
+					}, 3000)
+				}
+				else {
+					if(response["data"]["code"] == "0001") {
+						error.change_content("No one has this name here...")
+					}
+					else if(response["data"]["code"] == "0002") {
+						error.change_content(this.username_input + " is already your friend")
+					}
+					else {
+						error.change_content("An unexpected error occurred")
+					}
+
+					error.show()
+				}
+				this.add_contact_loading = false
+				this.username_input_enabled = true
+			}).catch((err) => {
+				console.error(err)
+				error.change_content("An unexpected error occurred")
+				error.show()
+				this.add_contact_loading = false
+				this.username_input_enabled = true
+			})
+		}
+    }
+})
+
+error = new Vue({
+    el: '#error',
+    data: {
+		showed: false,
+
+		content: ""
+    },
+    methods: {
+		show() {
+			this.showed = true
+			setTimeout(() => {
+				this.hide()
+			}, 5000)
+		},
+		hide() {
+			this.showed = false
+		},
+		change_content(content) {
+			this.hide()
+			this.content = content
+		}
+    }
+})
+
+socket.on('new_message', (message) => {
+	if(message["sender_uid"] == messages.contact.uid || 
+	(message["sender_uid"] == user.uid && message["receiver_uid"] == messages.contact.uid)) {
+		messages.add_message(message)
+		//set has seen
+		message.seen = 1
+	}
+
+	contacts.change_last_message_of_uid(message)
+})

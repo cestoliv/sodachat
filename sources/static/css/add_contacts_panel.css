@@ -1,0 +1,79 @@
+#add_contacts {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+#add_contacts.showed {
+    display: flex;
+}
+
+#add_contacts .close_add_contacts {
+    fill: #fff;
+    width: 2em;
+    height: 2em;
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    transition: fill .3s ease-in-out;
+    cursor: pointer;
+}
+#add_contacts .close_add_contacts:hover {
+    fill: #72a98f;
+}
+
+#add_contacts .add_contact_title {
+    color: #fff;
+    font-weight: bold;
+    font-size: 2rem;
+}
+
+#add_contacts .request_sent {
+    display: none;
+    color: #72a98f;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+#add_contacts .request_sent.showed {
+    display: block;
+}
+
+#add_contacts input {
+    background: #2f2f2f;
+    border: none;
+    color: #fff;
+    padding: 10px;
+    border-radius: 10px;
+
+    margin-bottom: 15px;
+}
+
+#add_contacts input.disabled {
+    pointer-events: none;
+}
+
+#add_contacts button {
+    background: #72a98f;
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+}
+#add_contacts button svg {
+    width: 2rem;
+    height: 2rem;
+    display: none;
+    fill: #fff;
+}
+#add_contacts button svg:last-child {
+    animation: rotate infinite .8s ease-in-out;
+}
+#add_contacts button:not(.loading) svg:first-child {
+    display: block;
+}
+#add_contacts button.loading svg:last-child {
+    display: block;
+}
