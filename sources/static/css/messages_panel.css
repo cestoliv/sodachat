@@ -181,10 +181,20 @@
     margin-right: 20px;
 }
 
-#return_to_contact > svg {
+.messages_infos svg {
     width: 1.5rem;
     height: 1.5rem;
-    fill: #fff
+    fill: #fff;
+    cursor: pointer;
+    transition: fill .2s;
+}
+
+.messages_infos svg:hover {
+    fill: #72a98f;
+}
+
+.messages_infos svg.delete {
+    margin-left: 10px;
 }
 
 .messages_infos > .contact_pseudo {
@@ -193,4 +203,8 @@
     color: #e0e0e0;
     font-weight: bold;
     font-size: 1.4rem;
+}
+
+.messages_infos > .separator {
+    width: 100%;
 }

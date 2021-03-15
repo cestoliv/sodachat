@@ -39,7 +39,7 @@ date_to_relative_date = (u_date) => {
     return "Invalid Date"
 }
 
-var contacts, messages, messages_placeholder, sign, error, add_contacts
+var confirmation, contacts, messages, messages_placeholder, sign, error, add_contacts
 
 show = (what) => {
 	app.classList.remove("sign")
@@ -75,6 +75,48 @@ show = (what) => {
 	}
 }
 
+confirmation = new Vue({
+    el: '#confirmation',
+    data: {
+        showed: false,
+        text: "",
+        OK_loading: false,
+        OK_text: "OK",
+        CANCEL_text: "CANCEL",
+
+        callback: console.log,
+    },
+    methods: {
+        ask_confirmation(n_text, n_callback) {
+            this.text = n_text
+            this.callback = n_callback
+            this.showed = true
+        },
+        ok() {
+            if(this.showed) {
+                this.OK_loading = true
+
+                this.callback.call().then(() => {
+                    this.showed = false
+                    this.text = ""
+                })
+				.catch((err) => {
+					console.log(err)
+				})
+				.finally(() => {
+                    this.OK_loading = false
+                })
+            }
+        },
+        cancel() {
+            if(this.showed) {
+                this.showed = false
+                this.text = ""
+            }
+        }
+    }
+})
+
 contacts = new Vue({
     el: '#contacts',
     data: {
@@ -103,6 +145,9 @@ contacts = new Vue({
 			show("messages")
 		},
 		add_contact(contact) {
+			if(contact["blocked"]) {
+				return
+			}
 			// set to seen if it's the user message
 			if(contact["last_message"].sender_uid == user.uid) {
 				contact["last_message"].seen = 1
@@ -114,6 +159,13 @@ contacts = new Vue({
 			}
 
 			this.contacts.push(contact)
+		},
+		remove_contact(contact_uid) {
+			for(i in this.contacts) {
+				if(this.contacts[i].uid == contact_uid) {
+					this.contacts.splice(i, 1)
+				}
+			}
 		},
 		change_last_message_of_uid(message) {
 			// set to seen if it's the user message
@@ -363,6 +415,10 @@ messages = new Vue({
 		},
 		load(contact) {
 			this.contact = contact
+			if(this.contact == {}) {
+				return
+			}
+
 			this.messages_loading = true
 
 			var formData = new FormData()
@@ -387,7 +443,65 @@ messages = new Vue({
 				this.messages_loading = false
 				this.contact = {}
 			})
-		}
+		},
+        action_block_contact() {
+            return new Promise((resolve, reject) => {
+                var formData = new FormData()
+			    formData.append("token", user.jwt)
+			    formData.append("contact_uid", this.contact.uid)
+
+			    axios.post("/api/v1/contacts/block", formData).then((response) => {
+				    if(response["data"]["status"] == "success") {
+						show("messages_placeholder")
+						contacts.remove_contact(this.contact.uid)
+						this.contact = {}
+                        resolve()
+                    }
+				    else {
+					    error.change_content("An unexpected error occurred")
+					    error.show()
+                        reject()
+				    }
+			    }).catch((err) => {
+				    console.error(err)
+				    error.change_content("An unexpected error occurred")
+				    error.show()
+                    reject()
+			    })
+            })
+        },
+        confirm_action_block_contact() {
+            confirmation.ask_confirmation("Would you really like to block <strong>" + this.contact.name + "</strong>?", this.action_block_contact)
+        },
+		action_delete_contact() {
+            return new Promise((resolve, reject) => {
+                var formData = new FormData()
+			    formData.append("token", user.jwt)
+			    formData.append("contact_uid", this.contact.uid)
+
+			    axios.post("/api/v1/contacts/delete", formData).then((response) => {
+				    if(response["data"]["status"] == "success") {
+						show("messages_placeholder")
+						contacts.remove_contact(this.contact.uid)
+						this.contact = {}
+                        resolve()
+                    }
+				    else {
+					    error.change_content("An unexpected error occurred")
+					    error.show()
+                        reject()
+				    }
+			    }).catch((err) => {
+				    console.error(err)
+				    error.change_content("An unexpected error occurred")
+				    error.show()
+                    reject()
+			    })
+            })
+        },
+        confirm_action_delete_contact() {
+            confirmation.ask_confirmation("Do you really want to remove <strong>" + this.contact.name + "</strong> from your friends?", this.action_delete_contact)
+        }
     }
 })
 

@@ -78,12 +78,30 @@
             </button>
         </div>
 
+        <div id="confirmation" :class="{ showed: showed }">
+            <div class="confirm_box">
+                <p v-html="text"></p>
+                <div class="controls">
+                    <button class="confirm_CANCEL" @click="cancel"><p v-html="CANCEL_text"></p></button>
+                    <button class="confirm_OK" @click="ok"><p v-html="OK_text"></p></button>
+                </div>
+            </div>
+        </div>
+
         <div id="messages" :class="{ showed: showed }">
             <div class="messages_infos">
                 <div id="return_to_contact" @click="hide_messages">
-                    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 492 492" xml:space="preserve"><g>	<g>		<path d="M464.344,207.418l0.768,0.168H135.888l103.496-103.724c5.068-5.064,7.848-11.924,7.848-19.124			c0-7.2-2.78-14.012-7.848-19.088L223.28,49.538c-5.064-5.064-11.812-7.864-19.008-7.864c-7.2,0-13.952,2.78-19.016,7.844			L7.844,226.914C2.76,231.998-0.02,238.77,0,245.974c-0.02,7.244,2.76,14.02,7.844,19.096l177.412,177.412			c5.064,5.06,11.812,7.844,19.016,7.844c7.196,0,13.944-2.788,19.008-7.844l16.104-16.112c5.068-5.056,7.848-11.808,7.848-19.008			c0-7.196-2.78-13.592-7.848-18.652L134.72,284.406h329.992c14.828,0,27.288-12.78,27.288-27.6v-22.788			C492,219.198,479.172,207.418,464.344,207.418z"/>	</g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g></svg>
+                    <!-- return icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 492 492"><title>Return</title><path d="M464 207l1 1H136l103-104a27 27 0 000-38l-16-16c-5-6-12-8-19-8s-14 2-19 8L8 227a27 27 0 000 38l177 177c5 6 12 8 19 8s14-2 19-8l16-16a27 27 0 000-37L135 284h330c15 0 27-12 27-27v-23c0-15-13-27-28-27z"/></svg>
                 </div>
                 <p class="contact_pseudo" v-html="contact.name"></p>
+                
+                <div class="separator"></div>
+
+                <!-- block icon -->
+                <svg @click="confirm_action_block_contact" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 448"><title>Block</title><path d="M224 0a224 224 0 100 448 224 224 0 000-448zm-88 90a160 160 0 01176 1L91 312c-49-74-29-173 45-222zm176 268a160 160 0 01-176-1l221-221c49 74 29 173-45 222z"/></svg>
+                <!-- delete icon -->
+                <svg class="delete" @click="confirm_action_delete_contact" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>Delete</title><path d="M424 64h-88V48c0-27-21-48-48-48h-64c-27 0-48 21-48 48v16H88c-22 0-40 18-40 40v32c0 9 7 16 16 16h384c9 0 16-7 16-16v-32c0-22-18-40-40-40zM208 48c0-9 7-16 16-16h64c9 0 16 7 16 16v16h-96zM78 184c-2 0-5 2-5 5l14 277c1 26 22 46 48 46h242c26 0 47-20 48-46l14-277c0-3-3-5-5-5zm242 40a16 16 0 1132 0v208a16 16 0 11-32 0zm-80 0a16 16 0 1132 0v208a16 16 0 11-32 0zm-80 0a16 16 0 1132 0v208a16 16 0 11-32 0z"/></svg>
             </div>
 
             <ul id="messages_list">
