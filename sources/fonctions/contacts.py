@@ -121,6 +121,7 @@ def delete_contact(uid, contact_uid) :
 
     cur = DB.conn.cursor()
     cur.execute('DELETE FROM contacts WHERE uid = "' + uid + '" AND contact_uid = "' + contact_uid + '"')
+    DB.conn.commit()
 
     return {
         "status": "success"

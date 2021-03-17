@@ -36,6 +36,8 @@
     color: #72a98f;
     font-weight: bold;
     font-size: 1.2em;
+    margin-top: 0;
+    margin-bottom: 35px;
 }
 
 #add_contacts .request_sent.showed {
