@@ -98,11 +98,6 @@
     max-width: 80%;
 }
 
-/* if the date is nor showed */
-#messages_list > .message div:only-child {
-    margin-bottom: 27px;
-}
-
 #messages_list > .message.contact div {
     border-bottom-right-radius: 10px;
     background: #72a98f;
@@ -116,6 +111,20 @@
 #messages_list > .message div p {
     margin: 0;
     text-align: start;
+}
+
+#messages_list > .message div .seen_mark {
+    fill: #72a98f;
+    width: 15px;
+    height: 15px;
+    position: absolute;
+}
+
+#messages_list > .message div .send_mark {
+    fill: #979696;
+    width: 15px;
+    height: 15px;
+    position: absolute;
 }
 
 #messages_list > .message > p {
