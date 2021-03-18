@@ -285,6 +285,7 @@ messages = new Vue({
 		},
 		set_contact(contact) {
 			this.contact = contact
+			this.messages = []
 		},
 		set_messages(messages) {
 			this.messages = []
@@ -434,6 +435,7 @@ messages = new Vue({
 					error.change_content("An unexpected error occurred")
 					error.show()
 					this.contact = {}
+					this.messages = []
 				}
 				this.messages_loading = false
 			}).catch((err) => {
@@ -442,6 +444,7 @@ messages = new Vue({
 				error.show()
 				this.messages_loading = false
 				this.contact = {}
+				this.messages = []
 			})
 		},
         action_block_contact() {
@@ -455,6 +458,7 @@ messages = new Vue({
 						show("messages_placeholder")
 						contacts.remove_contact(this.contact.uid)
 						this.contact = {}
+						this.messages = []
                         resolve()
                     }
 				    else {
@@ -484,6 +488,7 @@ messages = new Vue({
 						show("messages_placeholder")
 						contacts.remove_contact(this.contact.uid)
 						this.contact = {}
+						this.messages = []
                         resolve()
                     }
 				    else {
@@ -682,7 +687,7 @@ add_contacts = new Vue({
 		},
 		show_messages() {
 			contacts.load()
-			show("messages")
+			show("messages_placeholder")
 		},
 		add_contact() {
 			this.add_contact_loading = true
