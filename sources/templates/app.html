@@ -44,7 +44,7 @@
                         <img src="/static/imgs/profile-user.svg" />
                         <div>
                             <p class="contact_pseudo" v-html="contact.name"></p>
-                            <p class="contact_last_message" v-html="contact.last_message.content" :class="{ seen: contact.last_message.seen == 1 }"></p>
+                            <p class="contact_last_message" v-html="contact.last_message.content" :class="{ seen: contact.last_message.seen == 1 || contact.last_message.sender_uid == user.uid }"></p>
                         </div>
                     </li>
                 </ul>

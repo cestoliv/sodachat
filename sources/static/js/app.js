@@ -138,8 +138,6 @@ contacts = new Vue({
 			this.showed = false
 		},
 		show_messages(contact) {
-			//set has seen
-			contact.last_message.seen = 1
 			messages.load(contact)
 
 			show("messages")
@@ -147,10 +145,6 @@ contacts = new Vue({
 		add_contact(contact) {
 			if(contact["blocked"]) {
 				return
-			}
-			// set to seen if it's the user message
-			if(contact["last_message"].sender_uid == user.uid) {
-				contact["last_message"].seen = 1
 			}
 
 			// remove html tags of last_message content
@@ -168,11 +162,6 @@ contacts = new Vue({
 			}
 		},
 		change_last_message_of_uid(message) {
-			// set to seen if it's the user message
-			if(message.sender_uid == user.uid) {
-				message.seen = 1
-			}
-
 			// remove html tags of last_message content
 			if(message.content != undefined) {
 				message.content = message.content.replace( /(<([^>]+)>)/ig, '')
@@ -305,24 +294,24 @@ messages = new Vue({
 			message["sender"] = "contact"
 			if(message["sender_uid"] == user.uid) {
 				message["sender"] = "me"
-				message["seen"] = 1
 			}
 			message["show_date"] = false
-
-			this.messages.push(message)
+			
+            this.messages.push(message)
 
 			Vue.nextTick(() => {
 				this.scroll_to_last_message()
 			})
 
 			// set message has seen
-			if(message["seen"] == 0) {
+			if(message["seen"] == 0 && message["sender_uid"] != user.uid) {
 				var formData = new FormData()
 				formData.append("token", user.jwt)
 				formData.append("message_ids", message["id"])
 
 				axios.post("/api/v1/messages/seen", formData).then((response) => {
 					if(response["data"]["status"] == "success") {
+						message.seen = 1
 					}
 					else {
 						if(response["data"]["code"] == "0001") {
@@ -382,9 +371,6 @@ messages = new Vue({
 
 					this.add_message(message_data)
 
-					// change message_data for contacts panel
-					//message_data.sender_uid = this.contact.uid
-					message_data.seen = 1
 					contacts.change_last_message_of_uid(message_data)
 
 					message_editor.setData("")
@@ -415,6 +401,9 @@ messages = new Vue({
 			}
 		},
 		load(contact) {
+            // set temporarly as seen in contacts list
+            contact.last_message.seen = 1
+
 			this.contact = contact
 			if(this.contact == {}) {
 				return
@@ -517,6 +506,7 @@ messages_placeholder = new Vue({
     },
     methods: {
 		show() {
+			messages.contact = {}
 			this.showed = true
 		},
 		hide() {
@@ -758,11 +748,8 @@ error = new Vue({
 })
 
 socket.on('new_message', (message) => {
-	if(message["sender_uid"] == messages.contact.uid || 
-	(message["sender_uid"] == user.uid && message["receiver_uid"] == messages.contact.uid)) {
+	if(message["sender_uid"] == messages.contact.uid || message["receiver_uid"] == messages.contact.uid) {
 		messages.add_message(message)
-		//set has seen
-		message.seen = 1
 	}
 
 	contacts.change_last_message_of_uid(message)
