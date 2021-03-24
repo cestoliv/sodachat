@@ -70,11 +70,20 @@ def set_messages_seen(uid, message_ids):
 
     message_ids = message_ids.split(",")
 
+    seen_messages = []
+
     for i in range(len(message_ids)):
-        #print(message_ids[i])
-        cur.execute("UPDATE messages SET seen=1 WHERE id = ? AND receiver_uid = ? ", (message_ids[i], uid))  #écrire le message dans la bdd
+        cur.execute("UPDATE messages SET seen=1 WHERE id = ? AND receiver_uid = ? ", (message_ids[i], uid)) # set message has read
+        cur.execute("SELECT sender_uid FROM messages WHERE id = ?", (message_ids[i],)) # retrieve sender_uid to notify him
+
+        seen_messages.append({
+            "id": message_ids[i],
+            "sender_uid": cur.fetchall()[0][0] # because [('uid',)]
+        })
+
     DB.conn.commit()
 
     return {
-        "status": "success"
+        "status": "success",
+        "seen_messages": seen_messages
     }

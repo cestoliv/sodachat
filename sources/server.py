@@ -296,6 +296,10 @@ class SetMessagesSeen(Resource):
                 decoded_token["uid"],
                 request.form.get("message_ids", ""))
 
+            # send socket
+            for message in seen_message["seen_messages"]:
+                socketio.emit("message_seen", message["id"], room=message["sender_uid"])    
+
             return seen_message
 
         except Exception as e:

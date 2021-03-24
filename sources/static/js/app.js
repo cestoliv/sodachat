@@ -329,6 +329,13 @@ messages = new Vue({
 				})
 			}
 		},
+		set_message_as_seen(message_id) {
+			for(messages_i in this.messages) {
+				if(this.messages[messages_i]["id"] == message_id) {
+					this.messages[messages_i]["seen"] = 1
+				}
+			}
+		},
 		refresh_dates() {
 			for(messages_i in this.messages) {
 				this.messages[messages_i]["date_string"] = date_to_relative_date(this.messages[messages_i].timestamp)
@@ -753,4 +760,8 @@ socket.on('new_message', (message) => {
 	}
 
 	contacts.change_last_message_of_uid(message)
+})
+
+socket.on('message_seen', (message_id) => {
+	messages.set_message_as_seen(message_id)
 })
