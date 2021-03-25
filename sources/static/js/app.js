@@ -445,14 +445,15 @@ messages = new Vue({
 		},
         action_block_contact() {
             return new Promise((resolve, reject) => {
+				let contact_uid = this.contact.uid
                 var formData = new FormData()
 			    formData.append("token", user.jwt)
-			    formData.append("contact_uid", this.contact.uid)
+			    formData.append("contact_uid", contact_uid)
 
 			    axios.post("/api/v1/contacts/block", formData).then((response) => {
 				    if(response["data"]["status"] == "success") {
 						show("messages_placeholder")
-						contacts.remove_contact(this.contact.uid)
+						contacts.remove_contact(contact_uid)
 						this.contact = {}
 						this.messages = []
                         resolve()
@@ -475,14 +476,15 @@ messages = new Vue({
         },
 		action_delete_contact() {
             return new Promise((resolve, reject) => {
+				let contact_uid = this.contact.uid
                 var formData = new FormData()
 			    formData.append("token", user.jwt)
-			    formData.append("contact_uid", this.contact.uid)
+			    formData.append("contact_uid", contact_uid)
 
 			    axios.post("/api/v1/contacts/delete", formData).then((response) => {
 				    if(response["data"]["status"] == "success") {
 						show("messages_placeholder")
-						contacts.remove_contact(this.contact.uid)
+						contacts.remove_contact(contact_uid)
 						this.contact = {}
 						this.messages = []
                         resolve()
@@ -514,6 +516,7 @@ messages_placeholder = new Vue({
     methods: {
 		show() {
 			messages.contact = {}
+			messages.messages = {}
 			this.showed = true
 		},
 		hide() {
