@@ -40,4 +40,5 @@ if user_data == "forecast hour/hour":
         request = urllib.request.urlopen(url).read()
         data4 = json.loads(request.decode())
         print(str(data4['Datetime']), "\n", "Weather:", str(data3['hourly'][i]['weather'][0]['main']),"\n" "Temperature:", str(data3['hourly'][i]['temp'])+ "°C (feeling: ", str(data3['hourly'][i]['feels_like'])+")","\n")
+      
         
