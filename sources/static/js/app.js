@@ -516,7 +516,7 @@ messages_placeholder = new Vue({
     methods: {
 		show() {
 			messages.contact = {}
-			messages.messages = {}
+			messages.messages = []
 			this.showed = true
 		},
 		hide() {
