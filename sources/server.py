@@ -8,7 +8,7 @@ import inspect
 import eventlet
 eventlet.monkey_patch()
 
-from fonctions.users import signup, signin
+from fonctions.users import signup, signin, get_profile
 from fonctions.contacts import get_contacts, add_contact, delete_contact, block_contact, unblock_contact
 from fonctions.messages import get_messages, send_message, set_messages_seen
 
@@ -23,7 +23,9 @@ def decode_token(token):
     
     #checks the user from the token still exists 
     token = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    check_user_exist = users.get_profile(token['uid'])
+    print(token)
+    check_user_exist = get_profile(token['uid'])
+    print(check_user_exist)
 
     if check_user_exist['code'] == "0001" :
         return {
