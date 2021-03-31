@@ -8,7 +8,7 @@ import inspect
 import eventlet
 eventlet.monkey_patch()
 
-from fonctions.users import signup, signin
+from fonctions.users import signup, signin, get_profile
 from fonctions.contacts import get_contacts, add_contact, delete_contact, block_contact, unblock_contact
 from fonctions.messages import get_messages, send_message, set_messages_seen
 
@@ -20,8 +20,19 @@ JWT_SECRET = "secret"
 APP_SECRET = "secret"
 
 def decode_token(token):
-    # TODO: vérifier dans la db
-    return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    
+    #checks the user from the token still exists 
+    token = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    check_user_exist = get_profile(token['uid'])
+
+    if check_user_exist['status'] == "error" :
+        return {
+            "status": "error",
+            "code": "0001"
+        }
+    else :
+        return token
+
 def encode_token(obj):
     return jwt.encode(obj, JWT_SECRET, algorithm="HS256").decode("utf-8")
 
