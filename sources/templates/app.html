@@ -44,7 +44,7 @@
                         <img src="/static/imgs/profile-user.svg" />
                         <div>
                             <p class="contact_pseudo" v-html="contact.name"></p>
-                            <p class="contact_last_message" v-html="contact.last_message.content" :class="{ seen: contact.last_message.seen == 1 }"></p>
+                            <p class="contact_last_message" v-html="contact.last_message.content" :class="{ seen: contact.last_message.seen == 1 || contact.last_message.sender_uid == user.uid }"></p>
                         </div>
                     </li>
                 </ul>
@@ -106,8 +106,14 @@
 
             <ul id="messages_list">
                 <li class="message" v-for="(message, index) in messages" :class="message.sender">
-                    <div><p v-html="message.content" @click="toggle_message_date(message)"></p></div>
-                    <p v-if="message.show_date || index == messages.length - 1" v-html="message.date_string" @click="toggle_message_date(message)"></p>
+                    <div>
+                        <p v-html="message.content" @click="toggle_message_date(message)"></p>
+                        <svg class="seen_mark" v-if="message.seen && (message.show_date || index == messages.length - 1) && message.sender == 'me'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45.701 45.7"><path d="M20.687 38.332a5.308 5.308 0 01-7.505 0L1.554 26.704A5.306 5.306 0 119.059 19.2l6.928 6.927a1.344 1.344 0 001.896 0L36.642 7.368a5.308 5.308 0 017.505 7.504l-23.46 23.46z"/></svg>
+                        <svg class="send_mark" v-if="!message.seen && (message.show_date || index == messages.length - 1) && message.sender == 'me'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45.701 45.7"><path d="M20.687 38.332a5.308 5.308 0 01-7.505 0L1.554 26.704A5.306 5.306 0 119.059 19.2l6.928 6.927a1.344 1.344 0 001.896 0L36.642 7.368a5.308 5.308 0 017.505 7.504l-23.46 23.46z"/></svg>
+                    </div>
+
+                    <p v-if="!(message.show_date || index == messages.length - 1)" @click="toggle_message_date(message)">&nbsp;</p>
+                    <p v-else v-html="message.date_string" @click="toggle_message_date(message)"></p>
                 </li>
             </ul>
 
