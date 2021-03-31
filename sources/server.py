@@ -23,11 +23,9 @@ def decode_token(token):
     
     #checks the user from the token still exists 
     token = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    print(token)
     check_user_exist = get_profile(token['uid'])
-    print(check_user_exist)
 
-    if check_user_exist['code'] == "0001" :
+    if check_user_exist['status'] == "error" :
         return {
             "status": "error",
             "code": "0001"
