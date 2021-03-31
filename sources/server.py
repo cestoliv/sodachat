@@ -20,8 +20,19 @@ JWT_SECRET = "secret"
 APP_SECRET = "secret"
 
 def decode_token(token):
-    # TODO: vérifier dans la db
-    return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    
+    #checks the user from the token still exists 
+    token = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    check_user_exist = users.get_profile(token['uid'])
+
+    if check_user_exist['code'] == "0001" :
+        return {
+            "status": "error",
+            "code": "0001"
+        }
+    else :
+        return token
+
 def encode_token(obj):
     return jwt.encode(obj, JWT_SECRET, algorithm="HS256").decode("utf-8")
 
