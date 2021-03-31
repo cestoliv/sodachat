@@ -1,5 +1,7 @@
 import urllib.request
 import json
+import datetime
+import time
 
 
 #City coordinates (France)
@@ -13,6 +15,9 @@ print("\n",data[0]['nom']+",",data[0]['departement']['nom'],"("+data[0]['departe
 #User request (provisional)
 user_data = str(input("data"))
 
+#Help command
+if user_data == 'help':
+    print("Current weather:  'weather' or 'current_weather'\nForecast 1 day: 'forecast'\nForecast 2 day: 'forecast2'\nforecast 7 day: 'daily'")
 
 #Current weather
 if user_data == 'weather' or user_data == 'current_weather':
@@ -29,44 +34,36 @@ if user_data == 'weather' or user_data == 'current_weather':
 
 
 #Forecast hour/hour 1 day
-if user_data == 'forecast' or user_data == 'forecastoneday':
+if user_data == 'forecast':
 
     url = 'https://api.openweathermap.org/data/2.5/onecall?lat='+str(coordinates[1])+'&lon='+str(coordinates[0])+'&exclude=daily,current,alerts,minutely&appid=05c0f1a3f5fd53306747862f8372e8fb&units=metric'
     request = urllib.request.urlopen(url).read()
-    data3 = json.loads(request.decode())
-    
-    day = len(data3['hourly'])/2 #only want 24 hours forecast
-    
-    for i in range (int(day)):
-        datetime = int(data3['hourly'][i]['dt']) + 3600
-        url = 'https://showcase.api.linx.twenty57.net/UnixTime/fromunixtimestamp?unixtimestamp='+str(datetime) #GMT GreenWich +1 hour for Paris/Geneva
-        request = urllib.request.urlopen(url).read()
-        data4 = json.loads(request.decode())
-        print(str(data4['Datetime']), ": \n", "Weather:", str(data3['hourly'][i]['weather'][0]['main']),"\n", "Temperature:", str(data3['hourly'][i]['temp'])+ "°C (feeling:", str(data3['hourly'][i]['feels_like'])+"°C)", "\n", "UV index:", str(data3['hourly'][i]['uvi']), "\n")
+    data3 = json.loads(request.decode()) 
+    day = len(data3['hourly'])/2
 
+    for i in range (int(day)):
+        times = data3['hourly'][i]['dt']
+        timezone = times + data3['timezone_offset']
+
+        forecast_time = datetime.datetime.fromtimestamp(timezone)
+        forecast_time = forecast_time.strftime('%d %B %Y - %Hh:')
+        print(str(forecast_time), "\n", "Weather:", str(data3['hourly'][i]['weather'][0]['main']),"\n", "Temperature:", str(data3['hourly'][i]['temp'])+ "°C (feeling:", str(data3['hourly'][i]['feels_like'])+"°C)", "\n", "UV index:", str(data3['hourly'][i]['uvi']), "\n")
+    
 
 #Forecast hour/hour 2 day
-if user_data == 'forecast2' or user_data == 'forecasttwoday':
+if user_data == 'forecast2': 
 
     url = 'https://api.openweathermap.org/data/2.5/onecall?lat='+str(coordinates[1])+'&lon='+str(coordinates[0])+'&exclude=daily,current,alerts,minutely&appid=05c0f1a3f5fd53306747862f8372e8fb&units=metric'
     request = urllib.request.urlopen(url).read()
-    data3 = json.loads(request.decode())
-    
-    for i in range (len(data3['hourly'])):
-        datetime = int(data3['hourly'][i]['dt']) + 3600
-        url = 'https://showcase.api.linx.twenty57.net/UnixTime/fromunixtimestamp?unixtimestamp='+str(datetime) #GMT GreenWich +1 hour for Paris/Geneva
-        request = urllib.request.urlopen(url).read()
-        data4 = json.loads(request.decode())
-        print(str(data4['Datetime']), ": \n", "Weather:", str(data3['hourly'][i]['weather'][0]['main']),"\n", "Temperature:", str(data3['hourly'][i]['temp'])+ "°C (feeling:", str(data3['hourly'][i]['feels_like'])+"°C)", "\n", "UV index:", str(data3['hourly'][i]['uvi']), "\n")
-    
+    data3 = json.loads(request.decode()) 
 
-#Alerts
-if user_data == 'alerts':
+    for i in range (int(day)):
+        times = data3['hourly'][i]['dt']
+        timezone = times + data3['timezone_offset']
 
-    url = 'https://api.openweathermap.org/data/2.5/onecall?lat='+str(coordinates[1])+'&lon='+str(coordinates[0])+'&exclude=daily,current,hourly,minutely&appid=05c0f1a3f5fd53306747862f8372e8fb&units=metric'
-    request = urllib.request.urlopen(url).read()
-    data3 = json.loads(request.decode())
-    print(" Alerts",data3['alerts'][0]['sender_name'],":", data3['alerts'][0]['description'], "\n Events:", data3['alerts'][0]['event'])
+        forecast_time = datetime.datetime.fromtimestamp(timezone)
+        forecast_time = forecast_time.strftime('%d %B %Y - %Hh:')
+        print(str(forecast_time), "\n", "Weather:", str(data3['hourly'][i]['weather'][0]['main']),"\n", "Temperature:", str(data3['hourly'][i]['temp'])+ "°C (feeling:", str(data3['hourly'][i]['feels_like'])+"°C)", "\n", "UV index:", str(data3['hourly'][i]['uvi']), "\n")
 
 
 #Daily
@@ -78,13 +75,21 @@ if user_data == 'daily':
     print(data3)
 
     for i in range (len(data3['daily'])):
-        datetime = int(data3['daily'][i]['dt']) + 3600
-        url = 'https://showcase.api.linx.twenty57.net/UnixTime/fromunixtimestamp?unixtimestamp='+str(datetime) #GMT GreenWich +1 hour for Paris/Geneva
-        request = urllib.request.urlopen(url).read()
-        data4 = json.loads(request.decode())
-        print(data4['Datetime']+":")
+    
+        #Timezone
+        times = data3['daily'][i]['dt']
+        timezone = times + data3['timezone_offset']
+        forecast_time = datetime.datetime.fromtimestamp(timezone)
+        forecast_time = forecast_time.strftime('%a %d %B:')
 
-#trouver un moyen de convertir le format de la date 
-#ex: 2021-03-27 12:00:00 -> Samedi 27 mars 2021 12:00
-#pour obtenir lecture plus agreable des données notement pour 'sunset' & 'sunrise'  
-#ne donner que l'heure de lever et de coucher plutot que toute la date
+        #Sunrise 
+        sunrise = data3['daily'][i]['sunrise']
+        sunrise_time = datetime.datetime.fromtimestamp(sunrise)
+        sunrise_time = sunrise_time.strftime('%H:%M')
+
+        #Sunset
+        sunset = data3['daily'][i]['sunset']
+        sunset_time = datetime.datetime.fromtimestamp(sunset)
+        sunset_time = sunset_time.strftime('%H:%M')
+
+        print(str(forecast_time),"\nWeather:",data3['daily'][i]['weather'][0]['main'],"\nSunrise:",str(sunrise_time),"   Sunset:",str(sunset_time),"\nMin:",data3['daily'][i]['temp']['min'],"°C    Max:",data3['daily'][i]['temp']['max'],"°C   Day:",data3['daily'][i]['temp']['day'],"°C\n")
