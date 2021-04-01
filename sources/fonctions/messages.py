@@ -27,10 +27,10 @@ def send_message(sender_uid, receiver_uid, content):
 
     if contacts.is_blocked(sender_uid, receiver_uid) == True :
         return {
-            "status": "error"
+            "status": "error",
             "code": "0001"
         }
-        
+
     date = datetime.datetime.now() #Date d'envoi du message : YYYY-MM-DD hh:mm:ss
     message_data = [uuid.uuid1().hex, date, sender_uid, receiver_uid, content, 0]  #uuid.uuid1().hex : id du message, type[str]
 
