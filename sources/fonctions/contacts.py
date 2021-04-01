@@ -112,6 +112,7 @@ def get_contacts(uid):
                 "name": contacts_profile[i]["name"],
                 "last_message": last_message(uid, contacts_profile[i]["uid"]),
                 "blocked": is_blocked(uid, contacts_profile[i]["uid"]),
+                "added_back": in_contacts(uid, contacts_profile[i]["uid"]),
                 "timestamp": contacts_infos[i][1]
             } for i in range(0, len(contacts_profile))
         ]
