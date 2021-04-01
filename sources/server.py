@@ -24,8 +24,19 @@ JWT_SECRET = "secret"
 APP_SECRET = "secret"
 
 def decode_token(token):
-    # TODO: vérifier dans la db
-    return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    
+    #checks the user from the token still exists 
+    token = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    check_user_exist = get_profile(token['uid'])
+
+    if check_user_exist['status'] == "error" :
+        return {
+            "status": "error",
+            "code": "0001"
+        }
+    else :
+        return token
+
 def encode_token(obj):
     return jwt.encode(obj, JWT_SECRET, algorithm="HS256").decode("utf-8")
 
@@ -336,6 +347,10 @@ class SetMessagesSeen(Resource):
             seen_message = set_messages_seen(
                 decoded_token["uid"],
                 request.form.get("message_ids", ""))
+
+            # send socket
+            for message in seen_message["seen_messages"]:
+                socketio.emit("message_seen", message["id"], room=message["sender_uid"])    
 
             return seen_message
 
