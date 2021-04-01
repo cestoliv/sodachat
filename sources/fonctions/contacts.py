@@ -97,11 +97,11 @@ def get_contacts(uid):
                 "name": contacts_profile[i]["name"],
                 "last_message": last_message(uid, contacts_profile[i]["uid"]),
                 "blocked": is_blocked(uid, contacts_profile[i]["uid"]),
-                "timestamp": contacts_infos[i][1]
+                "timestamp": contacts_infos[i][1],
+                "type": contacts_profile[i]["type"]
             } for i in range(0, len(contacts_profile))
         ]
-
-    }  #renvoi des messages
+    }
 
 """SUPPRIMER UN CONTACT"""
 def delete_contact(uid, contact_uid) :
