@@ -43,7 +43,10 @@
                     <li class="contact" v-for="contact in contacts" @click="show_messages(contact)">
                         <img src="/static/imgs/profile-user.svg" />
                         <div>
-                            <p class="contact_pseudo" v-html="contact.name"></p>
+                            <div class="contact_pseudo">
+                                <span class="contact_pseudo_bot_mark" v-if="contact.type == 'bot'">BOT</span>
+                                <p v-html="contact.name"></p>
+                            </div>
                             <p class="contact_last_message" v-html="contact.last_message.content" :class="{ seen: contact.last_message.seen == 1 || contact.last_message.sender_uid == user.uid }"></p>
                         </div>
                     </li>
