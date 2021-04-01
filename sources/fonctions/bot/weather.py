@@ -4,12 +4,37 @@ import datetime
 import time
 
 
+
+def bot(user_data):
+    user_data = user_data.split(" ")
+
+    #Help
+    if(user_data_split[0] == "help"):
+        return "Current weather:  'weather' or 'current_weather'\nForecast 1 day: 'forecast'\nForecast 2 day: 'forecast2'\nforecast 7 day: 'daily'"
+
+
+    if(user_data_split[0] == "weather"):
+        url = 'https://geo.api.gouv.fr/communes?nom='+str(city)+'&fields=nom,centre,departement,region&limit=1'
+        request = urllib.request.urlopen(url).read()
+        data = json.loads(request.decode())
+        coordinates = data[0]['centre']['coordinates']
+        return coordinates
+      
+
+
+
+
+def get_coord(city):
+    url = 'https://geo.api.gouv.fr/communes?nom='+str(city)+'&fields=nom,centre,departement,region&limit=1'
+    request = urllib.request.urlopen(url).read()
+    data = json.loads(request.decode())
+    coordinates = data[0]['centre']['coordinates']
+    return coordinates
+
+
 #City coordinates (France)
 city = str(input("city"))
-url = 'https://geo.api.gouv.fr/communes?nom='+str(city)+'&fields=nom,centre,departement,region&limit=1'
-request = urllib.request.urlopen(url).read()
-data = json.loads(request.decode())
-coordinates = data[0]['centre']['coordinates']
+
 print("\n",data[0]['nom']+",",data[0]['departement']['nom'],"("+data[0]['departement']['code']+"),",data[0]['region']['nom']+":","\n")
 
 #User request (provisional)
