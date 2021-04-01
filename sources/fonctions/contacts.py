@@ -121,6 +121,8 @@ def delete_contact(uid, contact_uid) :
 
     cur = DB.conn.cursor()
     cur.execute('DELETE FROM contacts WHERE uid = "' + uid + '" AND contact_uid = "' + contact_uid + '"')
+    cur.execute('DELETE FROM messages WHERE sender_uid = "' + uid + '" AND receiver_uid = "' + contact_uid + '"')
+    cur.execute('DELETE FROM messages WHERE sender_uid = "' + contact_uid + '" AND receiver_uid = "' + uid + '"')
     DB.conn.commit()
 
     return {
