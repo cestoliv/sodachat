@@ -29,7 +29,7 @@ def add_contact(uid, contact_username) :
     if user["uid"] == uid :
         return {
             "status": "error",
-            "code": "0001"
+            "code": "0003"
         }
 
     # test user still in contacts
