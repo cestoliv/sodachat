@@ -78,6 +78,21 @@ def last_message(sender_uid, receiver_uid):
     else:
         return {}
 
+"""SAVOIR SI 2 UTILISATEURS SONT EN CONTACTS"""
+def in_contacts(uid_user1, uid_user2) :
+    
+    info_contacts_user1 = get_contacts(uid_user1)["contacts"]
+    for i in range(len(info_contacts_user1)):
+        if info_contacts_user1[i]["uid"] == uid_user2:
+            return True
+    
+    info_contacts_user2 = get_contacts(uid_user2)["contacts"]
+    for i in range(len(info_contacts_user2)):
+        if info_contacts_user2[i]["uid"] == uid_user1:
+            return True
+    
+    return False
+
 
 """INFO SUR LES CONTACTS D'UN UTILISATEUR"""
 def get_contacts(uid):

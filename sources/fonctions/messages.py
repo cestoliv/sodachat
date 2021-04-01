@@ -33,7 +33,12 @@ def send_message(sender_uid, receiver_uid, content):
             "code": "0004"
         }
 
-        
+    #test if user is in contacts
+    if in_contacts(sender_uid, receiver_uid) == False :
+        return {
+            "status": "error",
+            "code": "0005"
+        }
 
     date = datetime.datetime.now() #Date d'envoi du message : YYYY-MM-DD hh:mm:ss
     message_data = [uuid.uuid1().hex, date, sender_uid, receiver_uid, content, 0]  #uuid.uuid1().hex : id du message, type[str]
