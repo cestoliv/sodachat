@@ -4,6 +4,7 @@ import datetime
 import os
 import sys
 import inspect
+import contacts
 
 # Changed the directory to /sources, to make it easier to import locally
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -24,6 +25,12 @@ def send_message(sender_uid, receiver_uid, content):
             "code": "0003"
         }
 
+    if contacts.is_blocked(sender_uid, receiver_uid) == True :
+        return {
+            "status": "error"
+            "code": "0001"
+        }
+        
     date = datetime.datetime.now() #Date d'envoi du message : YYYY-MM-DD hh:mm:ss
     message_data = [uuid.uuid1().hex, date, sender_uid, receiver_uid, content, 0]  #uuid.uuid1().hex : id du message, type[str]
 
