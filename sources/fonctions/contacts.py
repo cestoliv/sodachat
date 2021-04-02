@@ -81,14 +81,18 @@ def last_message(sender_uid, receiver_uid):
 """SAVOIR SI 2 UTILISATEURS SONT EN CONTACTS"""
 def in_contacts(uid_user1, uid_user2) :
     
-    info_contacts_user1 = get_contacts(uid_user1)["contacts"]
+    cur = DB.conn.cursor()
+    cur.execute('SELECT contact_uid FROM contacts WHERE uid =?', (uid_user1,)) #prendre les uid de tous les contacts de l'utilisateur
+    info_contacts_user1 = cur.fetchall()
     for i in range(len(info_contacts_user1)):
-        if info_contacts_user1[i]["uid"] == uid_user2:
+        if info_contacts_user1[i][0] == uid_user2:
             return True
     
-    info_contacts_user2 = get_contacts(uid_user2)["contacts"]
+    cur = DB.conn.cursor()
+    cur.execute('SELECT contact_uid, timestamp FROM contacts WHERE uid =?', (uid_user2,)) #prendre les uid de tous les contacts de l'utilisateur
+    info_contacts_user2 = cur.fetchall()
     for i in range(len(info_contacts_user2)):
-        if info_contacts_user2[i]["uid"] == uid_user1:
+        if info_contacts_user2[i][0] == uid_user1:
             return True
     
     return False
