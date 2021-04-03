@@ -5,6 +5,8 @@ import os
 import sys
 import inspect
 
+from fonctions.contacts import is_blocked, in_contacts
+
 # Changed the directory to /sources, to make it easier to import locally
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
@@ -23,6 +25,20 @@ def send_message(sender_uid, receiver_uid, content):
         return {
             "status": "error",
             "code": "0003"
+        }
+    
+    #test if user is blocked
+    if is_blocked(receiver_uid, sender_uid) == True :
+        return {
+            "status": "error",
+            "code": "0004"
+        }
+
+    #test if user is in contacts
+    if in_contacts(sender_uid, receiver_uid) == False :
+        return {
+            "status": "error",
+            "code": "0005"
         }
 
     date = datetime.datetime.now() #Date d'envoi du message : YYYY-MM-DD hh:mm:ss

@@ -54,7 +54,10 @@ def is_blocked(uid, contact_uid) :
     cur = DB.conn.cursor()
     cur.execute('SELECT blocked FROM contacts WHERE uid = "' + uid + '" AND contact_uid = "' + contact_uid + '"')
     blocked=cur.fetchall()
-    return blocked[0][0] == 1
+    if len(blocked) == 0:
+        return False
+    else:
+        return blocked[0][0] == 1
 
 """DERNIER MESSAGE ENTRE DEUX UTILISATEUR"""
 def last_message(sender_uid, receiver_uid):
@@ -78,6 +81,31 @@ def last_message(sender_uid, receiver_uid):
     else:
         return {}
 
+"""SAVOIR SI 2 UTILISATEURS SONT EN CONTACTS"""
+def in_contacts(uid_user1, uid_user2):
+
+    user1_with_user2 = False
+    
+    cur = DB.conn.cursor()
+    cur.execute('SELECT contact_uid FROM contacts WHERE uid =?', (uid_user1,)) #prendre les uid de tous les contacts de l'utilisateur
+    info_contacts_user1 = cur.fetchall()
+    if len(info_contacts_user1) != 0:
+        for i in range(len(info_contacts_user1)):
+            if info_contacts_user1[i][0] == uid_user2:
+                user1_with_user2 = True
+    
+    user2_with_user1 = False
+
+    cur = DB.conn.cursor()
+    cur.execute('SELECT contact_uid FROM contacts WHERE uid =?', (uid_user2,)) #prendre les uid de tous les contacts de l'utilisateur
+    info_contacts_user2 = cur.fetchall()
+    if len(info_contacts_user2) != 0:
+        for i in range(len(info_contacts_user2)):
+            if info_contacts_user2[i][0] == uid_user1:
+                user2_with_user1 = True
+    
+    return (user1_with_user2 and user2_with_user1)
+
 
 """INFO SUR LES CONTACTS D'UN UTILISATEUR"""
 def get_contacts(uid):
@@ -97,6 +125,7 @@ def get_contacts(uid):
                 "name": contacts_profile[i]["name"],
                 "last_message": last_message(uid, contacts_profile[i]["uid"]),
                 "blocked": is_blocked(uid, contacts_profile[i]["uid"]),
+                "added_back": in_contacts(uid, contacts_profile[i]["uid"]),
                 "timestamp": contacts_infos[i][1],
                 "type": contacts_profile[i]["type"]
             } for i in range(0, len(contacts_profile))
