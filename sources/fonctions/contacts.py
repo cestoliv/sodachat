@@ -26,6 +26,12 @@ def add_contact(uid, contact_username) :
             "code": "0001"
         }
 
+    if user["uid"] == uid :
+        return {
+            "status": "error",
+            "code": "0003"
+        }
+
     # test user still in contacts
     user_contacts = get_contacts(uid)["contacts"]
     for i in range(len(user_contacts)):

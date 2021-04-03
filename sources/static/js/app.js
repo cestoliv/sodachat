@@ -720,6 +720,9 @@ add_contacts = new Vue({
 					else if(response["data"]["code"] == "0002") {
 						error.change_content(this.username_input + " is already your friend")
 					}
+					else if(response["data"]["code"] == "0003") {
+						error.change_content("You can't add yourself as a friend")
+					}
 					else {
 						error.change_content("An unexpected error occurred")
 					}
