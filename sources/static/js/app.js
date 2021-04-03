@@ -386,6 +386,12 @@ messages = new Vue({
 					if(response["data"]["code"] == "0001") {
 						error.change_content("This person is not one of your contacts")
 					}
+					else if(response["data"]["code"] == "0004") {
+						error.change_content("This person blocked you")
+					}
+					else if(response["data"]["code"] == "0005") {
+						error.change_content("This person has not accepted you as a friend")
+					}
 					else {
 						error.change_content("An unexpected error occurred")
 					}
