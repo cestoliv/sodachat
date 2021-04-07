@@ -4,76 +4,74 @@ import datetime
 import time
 
 
+def get_coord(city):
+    url = 'https://geo.api.gouv.fr/communes?nom='+city+'&fields=nom,centre,departement,region&limit=1'
+    request = urllib.request.urlopen(url).read()
+    data = json.loads(request.decode())
+    get_coor = data[0]['centre']['coordinates']
+    return get_coor
+
 
 def bot(user_data):
     user_data = user_data.split(" ")
 
     #Help
-    if(user_data_split[0] == "help"):
-        return "Current weather:  'weather' or 'current_weather'\nForecast 1 day: 'forecast'\nForecast 2 day: 'forecast2'\nforecast 7 day: 'daily'"
+    if user_data[0] == "help":
+        return str("Current weather:  'weather' or 'current_weather'\nForecast 1 day: 'forecast'\nForecast 2 day: 'forecast2'\nforecast 7 day: 'daily'")
 
+    #Weather
+    if user_data[0] == "weather":
+        coord = get_coord(" ".join(user_data[1:]))
+        print(coord)
 
-    if(user_data_split[0] == "weather"):
-        url = 'https://geo.api.gouv.fr/communes?nom='+str(city)+'&fields=nom,centre,departement,region&limit=1'
+        url = 'https://api.openweathermap.org/data/2.5/weather?lat='+str(coord[1])+'&lon='+str(coord[0])+'&appid=05c0f1a3f5fd53306747862f8372e8fb&units=metric'
         request = urllib.request.urlopen(url).read()
         data = json.loads(request.decode())
-        coordinates = data[0]['centre']['coordinates']
-        return coordinates
-      
 
+        weather = data['weather'][0]['main'], data['weather'][0]['description']
+        main = data['main']['temp'],data['main']['feels_like'],data['main']['temp_min'],data['main']['temp_max'], data['main']['pressure'], data['main']['humidity']
+        
+        return weather[0], weather[1], main[0], main[1], main[2], main[3], main[4], main[5]
 
+    #Forecast hour/hour 1 day
+    if user_data[0] == "forecast":
+        coord = get_coord(" ".join(user_data[1:]))
 
+        url = 'https://api.openweathermap.org/data/2.5/onecall?lat='+str(coord[1])+'&lon='+str(coord[0])+'&exclude=daily,current,alerts,minutely&appid=05c0f1a3f5fd53306747862f8372e8fb&units=metric'
+        request = urllib.request.urlopen(url).read()
+        data = json.loads(request.decode()) 
 
-def get_coord(city):
-    url = 'https://geo.api.gouv.fr/communes?nom='+str(city)+'&fields=nom,centre,departement,region&limit=1'
-    request = urllib.request.urlopen(url).read()
-    data = json.loads(request.decode())
-    coordinates = data[0]['centre']['coordinates']
-    return coordinates
+        html = ""
+        for i in range (int(len(data['hourly'])/2)):
+            times = data['hourly'][i]['dt']
+            timezone = times + data['timezone_offset']
 
+            forecast_time = datetime.datetime.fromtimestamp(timezone)
+            forecast_time = forecast_time.strftime('%d %B %Y - %Hh')
+            html += ('<div class="day">' +
+                        '<p class="date">' + str(forecast_time) + '</p>' +
+                        '<div class="weather">' + 
+                            '<img class="weather_icon" src="/app/bot/icons/weather/' + str(data['hourly'][i]['weather'][0]['description']) + '.svg" />' +
+                            '<p class="weather_desc">' + str(data['hourly'][i]['weather'][0]['main']) + '</p>' + 
+                        '<div>' +
+                        '<p class="temperature">Temp:' + str(data['hourly'][i]['temp']) + '°C<p>' +
+                        '<p class="feels_like">' + str(data['hourly'][i]['feels_like']) + '<p>' +
+                        '<p class="uvi">' + str(data['hourly'][i]['uvi']) + '<p>' +
+                    '</div>' + 
+                    '<br>')
 
-#City coordinates (France)
-city = str(input("city"))
+        return '<div class="forecast">' + html + '</div>'
+        
 
-print("\n",data[0]['nom']+",",data[0]['departement']['nom'],"("+data[0]['departement']['code']+"),",data[0]['region']['nom']+":","\n")
+print(bot("forecast cluses"))
 
-#User request (provisional)
-user_data = str(input("data"))
+"""
 
-#Help command
-if user_data == 'help':
-    print("Current weather:  'weather' or 'current_weather'\nForecast 1 day: 'forecast'\nForecast 2 day: 'forecast2'\nforecast 7 day: 'daily'")
+#AFFICHAGE VILLE
+data[0]['nom'],data[0]['departement']['nom'],data[0]['departement']['code'],data[0]['region']['nom']
 
-#Current weather
-if user_data == 'weather' or user_data == 'current_weather':
-
-    url = 'https://api.openweathermap.org/data/2.5/weather?lat='+str(coordinates[1])+'&lon='+str(coordinates[0])+'&appid=05c0f1a3f5fd53306747862f8372e8fb&units=metric'
-    request = urllib.request.urlopen(url).read()
-    data2 = json.loads(request.decode())
-
-    weather = data2['weather'][0]['main'], data2['weather'][0]['description']
-    print(" Sky :", weather[0],"\n", "Description:", weather[1])
-
-    main = data2['main']['temp'],data2['main']['feels_like'],data2['main']['temp_min'],data2['main']['temp_max'], data2['main']['pressure'], data2['main']['humidity']
-    print(" Current temperature:", main[0],"°C","\n","Feeling:", main[1],"°C","\n","Minimal temperature:", main[2],"°C","\n","Maximal temperature:", main[3],"°C","\n","Pressure:",main[4],"hPa","\n","Humidity:",main[5],"%","\n")
-
-
-#Forecast hour/hour 1 day
-if user_data == 'forecast':
-
-    url = 'https://api.openweathermap.org/data/2.5/onecall?lat='+str(coordinates[1])+'&lon='+str(coordinates[0])+'&exclude=daily,current,alerts,minutely&appid=05c0f1a3f5fd53306747862f8372e8fb&units=metric'
-    request = urllib.request.urlopen(url).read()
-    data3 = json.loads(request.decode()) 
-    day = len(data3['hourly'])/2
-
-    for i in range (int(day)):
-        times = data3['hourly'][i]['dt']
-        timezone = times + data3['timezone_offset']
-
-        forecast_time = datetime.datetime.fromtimestamp(timezone)
-        forecast_time = forecast_time.strftime('%d %B %Y - %Hh:')
-        print(str(forecast_time), "\n", "Weather:", str(data3['hourly'][i]['weather'][0]['main']),"\n", "Temperature:", str(data3['hourly'][i]['temp'])+ "°C (feeling:", str(data3['hourly'][i]['feels_like'])+"°C)", "\n", "UV index:", str(data3['hourly'][i]['uvi']), "\n")
-    
+#HELP
+str("Current weather:  'weather' or 'current_weather'\nForecast 1 day: 'forecast'\nForecast 2 day: 'forecast2'\nforecast 7 day: 'daily'")
 
 #Forecast hour/hour 2 day
 if user_data == 'forecast2': 
@@ -118,3 +116,6 @@ if user_data == 'daily':
         sunset_time = sunset_time.strftime('%H:%M')
 
         print(str(forecast_time),"\nWeather:",data3['daily'][i]['weather'][0]['main'],"\nSunrise:",str(sunrise_time),"   Sunset:",str(sunset_time),"\nMin:",data3['daily'][i]['temp']['min'],"°C    Max:",data3['daily'][i]['temp']['max'],"°C   Day:",data3['daily'][i]['temp']['day'],"°C\n")
+"""
+
+
