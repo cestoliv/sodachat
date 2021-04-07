@@ -73,7 +73,7 @@
     font-size: 1rem;
 }
 
-#contacts_list > ul > .contact:hover > div > p.contact_pseudo {
+#contacts_list > ul > .contact:hover > div > div.contact_pseudo > p {
     font-size: 1.3rem;
 }
 
@@ -100,10 +100,25 @@
     transition: font-size .2s ease-in-out;
 }
 
-#contacts_list > ul > .contact > div > p.contact_pseudo {
+#contacts_list > ul > .contact > div > div.contact_pseudo {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+#contacts_list > ul > .contact > div > div.contact_pseudo > p {
     font-weight: bold;
     font-size: 1.2rem;
     color: #e0e0e0;
+}
+
+#contacts_list > ul > .contact > div > div.contact_pseudo > span.contact_pseudo_bot_mark {
+    color: #72a98f;
+    font-weight: bold;
+    border: #72a98f 2px solid;
+    border-radius: 5px;
+    padding: 1px 3px;
+    margin-right: 7px;
 }
 
 #contacts_list > ul > .contact > div > .contact_last_message {

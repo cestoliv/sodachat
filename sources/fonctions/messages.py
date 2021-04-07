@@ -5,12 +5,15 @@ import os
 import sys
 import inspect
 
+from fonctions.contacts import is_blocked, in_contacts
+
 # Changed the directory to /sources, to make it easier to import locally
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 
 from db.db import DBConnection
+from fonctions.users import get_profile
 
 # Connection to database
 DB = DBConnection()
@@ -23,22 +26,44 @@ def send_message(sender_uid, receiver_uid, content):
             "status": "error",
             "code": "0003"
         }
+    
+    #test if user is blocked
+    if is_blocked(receiver_uid, sender_uid) == True :
+        return {
+            "status": "error",
+            "code": "0004"
+        }
+
+    #test if user is in contacts
+    if in_contacts(sender_uid, receiver_uid) == False :
+        return {
+            "status": "error",
+            "code": "0005"
+        }
 
     date = datetime.datetime.now() #Date d'envoi du message : YYYY-MM-DD hh:mm:ss
     message_data = [uuid.uuid1().hex, date, sender_uid, receiver_uid, content, 0]  #uuid.uuid1().hex : id du message, type[str]
 
-    cur = DB.conn.cursor()
-    cur.execute("INSERT INTO messages(id, timestamp, sender_uid, receiver_uid, content, seen) values (?,?,?,?,?,?)", message_data)  #écrire le message dans la bdd
-    DB.conn.commit()
+    # vérifier si receiver existe
+    receiver_profile = get_profile(receiver_uid)
+    if receiver_profile["status"] == "error" :
+        return {
+            "status": "error",
+            "code": "0001"
+        }
+    else:
+        cur = DB.conn.cursor()
+        cur.execute("INSERT INTO messages(id, timestamp, sender_uid, receiver_uid, content, seen) values (?,?,?,?,?,?)", message_data)  #écrire le message dans la bdd
+        DB.conn.commit()
 
-    return {
-        "status": "success",
-        "id": message_data[0],
-        "sender_uid": sender_uid,
-        "receiver_uid": receiver_uid,
-        "timestamp": str(date),
-        "seen": 0
-    }
+        return {
+            "status": "success",
+            "id": message_data[0],
+            "sender_uid": sender_uid,
+            "receiver_uid": receiver_uid,
+            "timestamp": str(date),
+            "seen": 0
+        }
 
 """LIRE LES MESSAGES"""
 def get_messages(sender_uid, receiver_uid, limit, offset): #limit = nombre de messages à afficher; offset = point de départ; pour avoir les 10 derniers messages : limit = 10, offset = 0 ; pour avoir les messages 16 à 20 (en partant de la fin) : limit = 5, offset = 15
@@ -70,11 +95,20 @@ def set_messages_seen(uid, message_ids):
 
     message_ids = message_ids.split(",")
 
+    seen_messages = []
+
     for i in range(len(message_ids)):
-        #print(message_ids[i])
-        cur.execute("UPDATE messages SET seen=1 WHERE id = ? AND receiver_uid = ? ", (message_ids[i], uid))  #écrire le message dans la bdd
+        cur.execute("UPDATE messages SET seen=1 WHERE id = ? AND receiver_uid = ? ", (message_ids[i], uid)) # set message has read
+        cur.execute("SELECT sender_uid FROM messages WHERE id = ?", (message_ids[i],)) # retrieve sender_uid to notify him
+
+        seen_messages.append({
+            "id": message_ids[i],
+            "sender_uid": cur.fetchall()[0][0] # because [('uid',)]
+        })
+
     DB.conn.commit()
 
     return {
-        "status": "success"
+        "status": "success",
+        "seen_messages": seen_messages
     }

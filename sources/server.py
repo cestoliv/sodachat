@@ -5,12 +5,16 @@ import jwt
 import os
 import sys
 import inspect
+import time
+import threading
+from bs4 import BeautifulSoup
 import eventlet
 eventlet.monkey_patch()
 
-from fonctions.users import signup, signin
+from fonctions.users import signup, signin, get_profile
 from fonctions.contacts import get_contacts, add_contact, delete_contact, block_contact, unblock_contact
 from fonctions.messages import get_messages, send_message, set_messages_seen
+from fonctions.bot.weather import bot as weather_bot
 
 # chdir to current file dir
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -20,8 +24,19 @@ JWT_SECRET = "secret"
 APP_SECRET = "secret"
 
 def decode_token(token):
-    # TODO: vérifier dans la db
-    return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    
+    #checks the user from the token still exists 
+    token = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    check_user_exist = get_profile(token['uid'])
+
+    if check_user_exist['status'] == "error" :
+        return {
+            "status": "error",
+            "code": "0001"
+        }
+    else :
+        return token
+
 def encode_token(obj):
     return jwt.encode(obj, JWT_SECRET, algorithm="HS256").decode("utf-8")
 
@@ -249,6 +264,36 @@ class GetMessages(Resource):
                 "code": "0000"
             }
 
+def bot(message_data, bot_profile):
+    # remove html tags
+    clean_content = BeautifulSoup(message_data["content"], "lxml").text
+
+    # get bot return
+    bot_return = "Sorry, I have nothing to say..."
+    if bot_profile["username"] == "weather":
+        bot_return = weather_bot(clean_content)
+
+    # store bot return
+    sended_message = send_message(
+        bot_profile["uid"],
+        message_data["sender_uid"],
+        bot_return
+    )
+
+    # send bot return
+    if sended_message["status"] == "success":
+        bot_message_data = {
+            "id": sended_message["id"],
+            "sender_uid": sended_message["sender_uid"],
+            "receiver_uid": sended_message["receiver_uid"],
+            "timestamp": sended_message["timestamp"],
+            "content": bot_return,
+            "seen": sended_message["seen"],
+        }
+
+        # send socket
+        socketio.emit("new_message", bot_message_data, room=message_data["sender_uid"])
+
 class SendMessages(Resource):
     def post(self):
         try:
@@ -272,8 +317,15 @@ class SendMessages(Resource):
                     "content": request.form.get("content", ""),
                     "seen": sended_message["seen"],
                 }
+
+                # send socket
                 socketio.emit("new_message", message_data, room=request.form.get("receiver_uid", ""))
                 socketio.emit("new_message", message_data, room=decoded_token["uid"])
+
+                # check if user is a bot
+                receiver_profile = get_profile(message_data["receiver_uid"])
+                if receiver_profile["status"] == "success" and receiver_profile["type"] == "bot":
+                    threading.Thread(target=bot, args=(message_data, receiver_profile)).start()
 
             return sended_message
 
@@ -295,6 +347,10 @@ class SetMessagesSeen(Resource):
             seen_message = set_messages_seen(
                 decoded_token["uid"],
                 request.form.get("message_ids", ""))
+
+            # send socket
+            for message in seen_message["seen_messages"]:
+                socketio.emit("message_seen", message["id"], room=message["sender_uid"])    
 
             return seen_message
 

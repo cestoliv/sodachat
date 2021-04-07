@@ -72,7 +72,7 @@ def signin(username, password):
 def get_profile(uid):
 
     cur = DB.conn.cursor()
-    cur.execute("SELECT uid, username, name FROM users WHERE uid = ?",(uid,))
+    cur.execute("SELECT uid, username, name, type FROM users WHERE uid = ?",(uid,))
     rows = cur.fetchall()
 
     if rows == []:
@@ -86,13 +86,14 @@ def get_profile(uid):
             "status": "success",
             "uid": rows[0][0],
             "username": rows[0][1],
-            "name": rows[0][2]
+            "name": rows[0][2],
+            "type": rows[0][3]
         }
 
 def get_profile_username(username):
 
     cur = DB.conn.cursor()
-    cur.execute("SELECT * FROM users WHERE username =?",(username,))
+    cur.execute("SELECT uid, username, name, type FROM users WHERE username =?",(username,))
     rows = cur.fetchall()
 
     if rows == []:
@@ -105,6 +106,7 @@ def get_profile_username(username):
         return {
             "status": "success",
             "uid": rows[0][0],
-            "username": rows[0][2],
-            "name": rows[0][1]
+            "username": rows[0][1],
+            "name": rows[0][2],
+            "type": rows[0][3]
         }
