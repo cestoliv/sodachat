@@ -5,6 +5,7 @@ import time
 
 
 def get_coord(city):
+    global city_data
     url = 'https://geo.api.gouv.fr/communes?nom='+city+'&fields=nom,centre,departement,region&limit=1'
     request = urllib.request.urlopen(url).read()
     data = json.loads(request.decode())
@@ -24,22 +25,23 @@ def bot(user_data):
     #Weather
     if user_data[0] == "weather":
         coord = get_coord(" ".join(user_data[1:]))
-        html = "<b>Current weather at" + "</b><br>" + ""
 
         url = 'https://api.openweathermap.org/data/2.5/weather?lat='+str(coord[1])+'&lon='+str(coord[0])+'&appid=05c0f1a3f5fd53306747862f8372e8fb&units=metric'
         request = urllib.request.urlopen(url).read()
         data = json.loads(request.decode())
         
-        html += ('<div class="day">' +
-                        '<div class="weather">' + 
-                            '<p class="weather_desc">' + str(data['weather'][0]['main']) +' <img class="weather_icon" src="/app/bot/icons/weather/' + str(data['weather'][0]['icon']) + '.svg" /> </p>'+ 
-                        '<div>' +
-                        '<p class="temperature">Temp: ' + str(data['main']['temp']) + '°C (feels like:'+ str(data['main']['feels_like']) + '°C)    Min: ' + str(data['main']['temp_min']) + '°C     Max: ' + str(data['main']['temp_max']) + '°C<p>' +
-                        '<p class="additionnal">Pressure: ' + str(data['main']['pressure']) + 'hPa     Humidity: ' + str(data['main']['humidity']) + '%<p>' +
-                    '</div>' + 
-                    '<br>')
+        html = ("<b>Current weather at " + city_data[0] + ", " + city_data[1] + "(" + city_data[2] + "), " + city_data[3] + ":</b><br>" + 
+                '<div class="day">' +
+                    '<div class="weather">' + 
+                        '<p class="weather_desc">' + str(data['weather'][0]['main']) +' <img class="weather_icon" src="/app/bot/icons/weather/' + str(data['weather'][0]['icon']) + '.svg" /> </p>'+ 
+                    '<div>' +
+                    '<p class="temperature">Temp: ' + str(data['main']['temp']) + '°C (feels like:'+ str(data['main']['feels_like']) + '°C)    Min: ' + str(data['main']['temp_min']) + '°C     Max: ' + str(data['main']['temp_max']) + '°C<p>' +
+                    '<p class="additionnal">Pressure: ' + str(data['main']['pressure']) + 'hPa     Humidity: ' + str(data['main']['humidity']) + '%<p>' +
+                '</div>' + 
+                '<br>')
 
         return '<div class="weather">' + html + '</div>'
+    
 
     #Forecast hour/hour 1 day
     if user_data[0] == "forecast":
@@ -49,8 +51,7 @@ def bot(user_data):
         request = urllib.request.urlopen(url).read()
         data = json.loads(request.decode()) 
 
-        
-        html = "<b>Forecast 24h at" + "</b><br>" + ""
+        html = "<b>Forecast 1 day at " + city_data[0] + ", " + city_data[1] + "(" + city_data[2] + "), " + city_data[3] + ":</b><br>" + ""
         for i in range (int(len(data['hourly'])/2)):
             times = data['hourly'][i]['dt']
             timezone = times + data['timezone_offset']
@@ -76,9 +77,8 @@ def bot(user_data):
         url = 'https://api.openweathermap.org/data/2.5/onecall?lat='+str(coord[1])+'&lon='+str(coord[0])+'&exclude=daily,current,alerts,minutely&appid=05c0f1a3f5fd53306747862f8372e8fb&units=metric'
         request = urllib.request.urlopen(url).read()
         data = json.loads(request.decode()) 
-
         
-        html = "<b>Forecast 48h at" + "</b><br>"+ ""
+        html = "<b>Forecast 2 day at " + city_data[0] + ", " + city_data[1] + "(" + city_data[2] + "), " + city_data[3] + ":</b><br>" + ""
         for i in range (int(len(data['hourly']))):
             times = data['hourly'][i]['dt']
             timezone = times + data['timezone_offset']
@@ -105,7 +105,7 @@ def bot(user_data):
         request = urllib.request.urlopen(url).read()
         data = json.loads(request.decode())
 
-        html = "<b>Daily data at" + "</b><br>" + ""
+        html = "<b>Forecast 1 week at " + city_data[0] + ", " + city_data[1] + "(" + city_data[2] + "), " + city_data[3] + ":</b><br>" + ""
         for i in range (len(data['daily'])):
         
             #Timezone
@@ -134,12 +134,3 @@ def bot(user_data):
                     '</div>' + 
                     '<br>')
         return '<div class="daily">' + html + '</div>'
-
-
-"""
-#AFFICHAGE VILLE
-data[0]['nom'],data[0]['departement']['nom'],data[0]['departement']['code'],data[0]['region']['nom']
-"""
-
-
-
