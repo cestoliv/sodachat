@@ -162,6 +162,7 @@ contacts = new Vue({
 			}
 		},
 		change_last_message_of_uid(message) {
+			message = {...message} // spread to "unlink"
 			// remove html tags of last_message content
 			if(message.content != undefined) {
 				message.content = message.content.replace( /(<([^>]+)>)/ig, '')
@@ -283,6 +284,7 @@ messages = new Vue({
 			}
 		},
 		add_message(message) {
+			message = {...message} // spread to "unlink"
 			// check if there's not still the message
 			for(i_message in this.messages) {
 				if(this.messages[i_message]["id"] == message.id) {

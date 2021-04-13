@@ -27,3 +27,4 @@ CREATE TABLE IF NOT EXISTS contacts (
 );
 COMMIT;
 
+INSERT INTO users VALUES ('botweatheruid', 'Weather', 'weather', '', 'bot');

@@ -88,7 +88,7 @@
     margin-left: 15px;
 }
 
-#messages_list > .message div {
+#messages_list > .message > div {
     color: #fff;
     display: inline-block;
     padding: 10px;
@@ -99,7 +99,7 @@
     position: relative;
 }
 
-#messages_list > .message.contact div {
+#messages_list > .message.contact > div {
     border-bottom-right-radius: 10px;
     background: #72a98f;
 }
@@ -217,4 +217,101 @@
 
 .messages_infos > .separator {
     width: 100%;
+}
+
+
+/* BOT ANSWER */
+/*weather*/
+.bot_weather.weather div.weather {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+}
+
+.bot_weather.weather div.weather p.weather_desc {
+    font-size: 1.3rem;
+}
+
+.bot_weather.weather div.weather img.weather_icon {
+    width: 50px;
+    height: 50px;
+}
+
+.bot_weather.weather div.temperature, .bot_weather.weather div.informations {
+    margin-left: 20px;
+    margin-bottom: 15px;
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-column-gap: 15px;
+}
+
+/*forecast*/
+.bot_weather.forecast .days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.bot_weather.forecast .days .day {
+    background: rgba(0, 0, 0, .2);
+    padding: 5px;
+    border-radius: 2px;
+}
+
+.bot_weather.forecast .days .day .weather {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+.bot_weather.forecast .days .day .weather .time {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+.bot_weather.forecast .days .day .weather .weather_icon {
+    width: 50px;
+    height: 50px;
+}
+
+.bot_weather.forecast .days .day .infos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* daily */
+.bot_weather.daily .days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.bot_weather.daily .days .day {
+    background: rgba(0, 0, 0, .2);
+    padding: 5px;
+    border-radius: 2px;
+}
+
+.bot_weather.daily .days .day .date {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.bot_weather.daily div.weather {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+}
+
+.bot_weather.daily div.weather p.weather_desc {
+    font-size: 1.3rem;
+}
+
+.bot_weather.daily div.weather img.weather_icon {
+    width: 50px;
+    height: 50px;
 }
