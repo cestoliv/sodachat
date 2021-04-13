@@ -138,6 +138,9 @@ contacts = new Vue({
 			this.showed = false
 		},
 		show_messages(contact) {
+			// set temporarly as seen in contacts list
+            contact.last_message.seen = 1
+
 			messages.load(contact)
 
 			show("messages")
@@ -416,9 +419,6 @@ messages = new Vue({
 			}
 		},
 		load(contact) {
-            // set temporarly as seen in contacts list
-            contact.last_message.seen = 1
-
 			this.contact = contact
 			if(this.contact == {}) {
 				return
@@ -771,6 +771,9 @@ error = new Vue({
 socket.on('new_message', (message) => {
 	if(message["sender_uid"] == messages.contact.uid || message["receiver_uid"] == messages.contact.uid) {
 		messages.add_message(message)
+
+		// set temporarly as seen in contacts list (only if it's the current conversation)
+		message.seen = 1
 	}
 
 	contacts.change_last_message_of_uid(message)
