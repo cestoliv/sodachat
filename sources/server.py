@@ -113,7 +113,7 @@ class CheckToken(Resource):
             user_data["jwt"] = request.form.get("token", "")
 
             return user_data
-        except Exception as e:
+        except Exception:
             #print(e)
             return {
                 "status": "error",
@@ -292,6 +292,7 @@ def bot(message_data, bot_profile):
         }
 
         # send socket
+        time.sleep(0.5)
         socketio.emit("new_message", bot_message_data, room=message_data["sender_uid"])
 
 class SendMessages(Resource):
