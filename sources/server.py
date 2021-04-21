@@ -176,7 +176,7 @@ class Signin(Resource):
                     }
     Error codes : 0000 => unknown error
                   0001 => invalid username
-                  0001 => invalid password
+                  0002 => invalid password
                   1314 => token invalid
                   1315 => the user does not exist
     """

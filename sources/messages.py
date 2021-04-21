@@ -115,7 +115,6 @@ def get_messages(sender_uid, receiver_uid, limit, offset): #limit = nombre de me
         ]
     }
 
-"""METTRE MESSAGES AU STATUT VU"""
 def set_messages_seen(uid, message_ids):
     """
     Sets the given messages to seen status
