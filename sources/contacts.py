@@ -100,7 +100,7 @@ def in_contacts(uid_user1, uid_user2):
     return (user1_with_user2 and user2_with_user1)
 
 ###############
-# API FONCTIONS
+# API FUNCTIONS
 ###############
 
 def add_contact(uid, contact_username) :
