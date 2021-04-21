@@ -5,11 +5,6 @@ import os
 import sys
 import inspect
 
-# Changed the directory to /sources, to make it easier to import locally
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,parentdir)
-
 from db.db import DBConnection
 
 # Connection to database
@@ -67,7 +62,10 @@ def signin(username, password):
         }
 
     else:
-        return {"status": "error", "code": "0001"}
+        return {
+            "status": "error", 
+            "code": "0002"
+        }
 
 def get_profile(uid):
 

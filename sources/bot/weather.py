@@ -3,7 +3,6 @@ import json
 import datetime
 import time
 
-
 def get_coord(city):
     global city_data
     url = 'https://geo.api.gouv.fr/communes?nom='+city+'&fields=nom,centre,departement,region&limit=1'

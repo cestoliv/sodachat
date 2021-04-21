@@ -5,13 +5,8 @@ import os
 import sys
 import inspect
 
-# Changed the directory to /sources, to make it easier to import locally
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,parentdir)
-
 from db.db import DBConnection
-from fonctions.users import get_profile, get_profile_username
+from users import get_profile, get_profile_username
 
 # Connection to database
 DB = DBConnection()
@@ -53,7 +48,7 @@ def add_contact(uid, contact_username) :
         "uid": user["uid"],
         "username": user["username"],
         "name": user["name"]
-    } #message de succès
+    }
 
 """SAVOIR SI UN UTILISATEUR EST BLOQUE"""
 def is_blocked(uid, contact_uid) :
@@ -199,7 +194,7 @@ def block_contact(uid, contact_uid) :
     return {
         "status": "success",
         "blocked": True
-        }
+    }
 
 """DEBLOQUER UN CONTACT"""
 def unblock_contact(uid, contact_uid) :
@@ -236,4 +231,4 @@ def unblock_contact(uid, contact_uid) :
     return {
         "status": "success",
         "blocked": False
-        }
+    }
