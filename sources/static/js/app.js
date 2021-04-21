@@ -2,10 +2,30 @@ var user = {}
 
 var app = document.getElementById("app")
 
-var socket = io()
+var socket = io({
+    reconnection: true,
+    reconnectionDelay: 500,
+    reconnectionDelayMax : 5000,
+    reconnectionAttempts: Infinity
+})
 
+var first_connection = true
 socket.on('connect', () => {
 	console.log("connected to socket")
+	if(user) {
+		socket.emit('register', {jwt: user.jwt})
+	}
+	if(!first_connection) {
+		error.change_content("Re-connected !")
+		error.show()
+	}
+	first_connection = false
+})
+
+socket.on('disconnect', () => {
+	console.log("disconnected from the socket")
+	error.change_content("Disconnected... Trying to re-connect...")
+	error.show()
 })
 
 date_to_relative_date = (u_date) => {
