@@ -1,6 +1,6 @@
 var message_editor
 
-BalloonEditor.create( document.getElementById( 'message_editor' ), {
+BalloonEditor.create(document.getElementById( 'message_editor' ), {
 	placeholder: "Send a message",
 	toolbar: {
 		items: [
@@ -37,10 +37,14 @@ BalloonEditor.create( document.getElementById( 'message_editor' ), {
 	licenseKey: '',
 })
 .then(editor => {
+	// assign th message Ballon Editor
 	message_editor = editor
 
+	// handle enter key
 	editor.keystrokes.set('Enter', (data, stop) => {
-    	stop()
+		// prevent line break
+		stop()
+		// send message
 		messages.send_message()
     })
 })
