@@ -44,7 +44,7 @@ def signup(name, username, password_hash):
 
 def signin(username, password):
     cur = DB.conn.cursor()
-    cur.execute("SELECT uid, name, password_hash FROM users WHERE username =?",(username,))
+    cur.execute("SELECT uid, type, name, password_hash FROM users WHERE username =?",(username,))
     DB.conn.commit()
 
     user_data = cur.fetchall()
@@ -55,8 +55,15 @@ def signin(username, password):
         }
 
     user_uid = user_data[0][0]
-    user_name = user_data[0][1]
-    user_password_hash = user_data[0][2]
+    user_type = user_data[0][1]
+    user_name = user_data[0][2]
+    user_password_hash = user_data[0][3]
+
+    if user_type == "bot" :
+        return {
+            "status": "error",
+            "code": "0002"
+        }
 
     if user_password_hash == password:
         return {
