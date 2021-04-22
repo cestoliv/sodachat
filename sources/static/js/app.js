@@ -13,7 +13,7 @@ var socket = io({
 var first_connection = true
 socket.on('connect', () => {
 	console.log("connected to socket")
-	if(user) {
+	if(user && user.jwt) {
 		socket.emit('register', {jwt: user.jwt})
 	}
 	// Don't show message on first connection
@@ -198,7 +198,6 @@ contacts = new Vue({
 			}
 
 			this.contacts.push(contact)
-			this.reorder_contacts()
 		},
 		remove_contact(contact_uid) {
 			for(i in this.contacts) {
@@ -583,7 +582,12 @@ messages = new Vue({
                         resolve()
                     }
 				    else {
-					    error.change_content("An unexpected error occurred")
+						if(response["data"]["code"] == "0001") {
+							error.change_content("You are not in contact with this person")
+						}
+						else {
+							error.change_content("An unexpected error occurred")
+						}
 					    error.show()
                         reject()
 				    }
@@ -763,7 +767,10 @@ sign = new Vue({
 					}
 					else {
 						if(response["data"]["code"] == "0001") {
-							error.change_content("One of your login is incorrect")
+							error.change_content("Your username is incorrect")
+						}
+						else if(response["data"]["code"] == "0001") {
+							error.change_content("Your password is incorrect")
 						}
 						else {
 							error.change_content("An unexpected error occurred")

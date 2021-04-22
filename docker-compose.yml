@@ -9,7 +9,4 @@ services:
     ports: 
       - 8667:8667
     volumes: 
-      - ./sources/db:/app/sources/db
-      - ./sources/fonctions:/app/sources/fonctions
-      - ./sources/static:/app/sources/static
-      - ./sources/templates:/app/sources/templates
+      - ./sources/:/app/sources/

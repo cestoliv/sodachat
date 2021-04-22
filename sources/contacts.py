@@ -196,14 +196,17 @@ def delete_contact(uid, contact_uid) :
     """
 
     # check that users are in contacts
+    in_user_contacts = False
     user_contacts = get_contacts(uid)["contacts"]
     for i in range(len(user_contacts)):
         if user_contacts[i]["uid"] == contact_uid:
             # user are in contacts
-            return {
-                "status": "error",
-                "code": "0001"
-            }
+            in_user_contacts = True
+    if not in_user_contacts:
+        return {
+            "status": "error",
+            "code": "0001"
+        }
      
     cur = DB.conn.cursor()
     # delete from user contacts
@@ -236,14 +239,17 @@ def block_contact(uid, contact_uid):
     """
 
     # check that users are in contacts
+    in_user_contacts = False
     user_contacts = get_contacts(uid)["contacts"]
     for i in range(len(user_contacts)):
         if user_contacts[i]["uid"] == contact_uid:
             # user are in contacts
-            return {
-                "status": "error",
-                "code": "0001"
-            }
+            in_user_contacts = True
+    if not in_user_contacts:
+        return {
+            "status": "error",
+            "code": "0001"
+        }
 
     # check that the contact is not blocked
     if is_blocked(uid, contact_uid):
@@ -273,14 +279,17 @@ def unblock_contact(uid, contact_uid):
     """
 
     # check that users are in contacts
+    in_user_contacts = False
     user_contacts = get_contacts(uid)["contacts"]
     for i in range(len(user_contacts)):
         if user_contacts[i]["uid"] == contact_uid:
             # user are in contacts
-            return {
-                "status": "error",
-                "code": "0001"
-            }
+            in_user_contacts = True
+    if not in_user_contacts:
+        return {
+            "status": "error",
+            "code": "0001"
+        }
 
     # check that the contact is not blocked
     if not is_blocked(uid, contact_uid):

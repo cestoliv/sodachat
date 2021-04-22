@@ -48,7 +48,7 @@ def encode_token(obj):
     """
     Encode the given object in a JWT
     """
-    return jwt.encode(obj, JWT_SECRET, algorithm="HS256").decode("utf-8")
+    return jwt.encode(obj, JWT_SECRET, algorithm="HS256")#.decode("utf-8")
 
 def bot_answer(message_data, bot_profile):
     """
@@ -112,7 +112,7 @@ def add_new_client(data):
         decoded_token = decode_token(data["jwt"])
         join_room(decoded_token["uid"])
     except Exception as e:
-        print(e)
+        print("socket : register", e)
 
 class Signup(Resource):
     """
@@ -150,7 +150,7 @@ class Signup(Resource):
             
             return jsonify(signup_return)
         except Exception as e:
-            print(e)
+            print("/users/signup", e)
             return {
                 "status": "error",
                 "code": "0000"
@@ -193,7 +193,7 @@ class Signin(Resource):
             
             return jsonify(signin_return)
         except Exception as e:
-            print(e)
+            print("/users/signin", e)
             return {
                 "status": "error",
                 "code": "0000"
@@ -236,7 +236,7 @@ class CheckToken(Resource):
 
             return decoded_token
         except Exception as e:
-            print(e)
+            print("/users/check-token", e)
             return {
                 "status": "error",
                 "code": "0000"
@@ -293,7 +293,7 @@ class GetContacts(Resource):
             return user_contacts
 
         except Exception as e:
-            print(e)
+            print("/contacts/get", e)
             return {
                 "status": "error",
                 "code": "0000"
@@ -342,7 +342,7 @@ class AddContact(Resource):
             return added_contact
 
         except Exception as e:
-            print(e)
+            print("/contacts/add", e)
             return {
                 "status": "error",
                 "code": "0000"
@@ -386,7 +386,7 @@ class DeleteContact(Resource):
             return deleted_contact
 
         except Exception as e:
-            print(e)
+            print("/contacts/delete", e)
             return {
                 "status": "error",
                 "code": "0000"
@@ -432,7 +432,7 @@ class BlockContact(Resource):
             return blocked_contact
 
         except Exception as e:
-            print(e)
+            print("/contacts/block", e)
             return {
                 "status": "error",
                 "code": "0000"
@@ -478,7 +478,7 @@ class UnblockContact(Resource):
             return unblocked_contact
 
         except Exception as e:
-            print(e)
+            print("/contacts/unblock", e)
             return {
                 "status": "error",
                 "code": "0000"
@@ -538,7 +538,7 @@ class GetMessages(Resource):
             return user_messages
 
         except Exception as e:
-            print(e)
+            print("/messages/get", e)
             return {
                 "status": "error",
                 "code": "0000"
@@ -611,7 +611,7 @@ class SendMessages(Resource):
             return sended_message
 
         except Exception as e:
-            print(e)
+            print("/messages/send", e)
             return {
                 "status": "error",
                 "code": "0000"
@@ -664,7 +664,7 @@ class SetMessagesSeen(Resource):
             return seen_message
 
         except Exception as e:
-            print(e)
+            print("/messages/seen", e)
             return {
                 "status": "error",
                 "code": "0000"
