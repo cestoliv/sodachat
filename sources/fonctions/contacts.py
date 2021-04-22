@@ -31,6 +31,19 @@ def add_contact(uid, contact_username) :
             "status": "error",
             "code": "0003"
         }
+    #test if person sending request blocked the other user
+    if is_blocked(uid, user["uid"]) == True :
+        return {
+            "status": "error",
+            "code": "0004"
+        }
+
+    #test if person sending request is blocked by the other user
+    if is_blocked(user["uid"], uid) == True :
+        return {
+            "status": "error",
+            "code": "0005"
+        }
 
     # test user still in contacts
     user_contacts = get_contacts(uid)["contacts"]
