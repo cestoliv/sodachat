@@ -5,73 +5,99 @@ import os
 import sys
 import inspect
 
-from fonctions.contacts import is_blocked, in_contacts
-
-# Changed the directory to /sources, to make it easier to import locally
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,parentdir)
-
+# Import local modules
 from db.db import DBConnection
-from fonctions.users import get_profile
+from users import get_profile
+from contacts import is_blocked, in_contacts
 
 # Connection to database
 DB = DBConnection()
 
-"""ENVOYER UN MESSAGE"""
+###############
+# API FUNCTIONS
+###############
+
 def send_message(sender_uid, receiver_uid, content):
+    """
+    Send a message to the given user
 
-    if content == "":
-        return {
-            "status": "error",
-            "code": "0003"
-        }
-    
-    #test if user is blocked
-    if is_blocked(receiver_uid, sender_uid) == True :
-        return {
-            "status": "error",
-            "code": "0004"
-        }
+    Error codes : 0001 => this contact does not exist
+                  0003 => the content cannot be empty
+                  0004 => you have blocked this contact
+                  0005 => you are not in contact
+    """
 
-    #test if user is in contacts
-    if in_contacts(sender_uid, receiver_uid) == False :
-        return {
-            "status": "error",
-            "code": "0005"
-        }
-
-    date = datetime.datetime.now() #Date d'envoi du message : YYYY-MM-DD hh:mm:ss
-    message_data = [uuid.uuid1().hex, date, sender_uid, receiver_uid, content, 0]  #uuid.uuid1().hex : id du message, type[str]
-
-    # vérifier si receiver existe
+    # check that receiver exist and get it
     receiver_profile = get_profile(receiver_uid)
     if receiver_profile["status"] == "error" :
         return {
             "status": "error",
             "code": "0001"
         }
-    else:
-        cur = DB.conn.cursor()
-        cur.execute("INSERT INTO messages(id, timestamp, sender_uid, receiver_uid, content, seen) values (?,?,?,?,?,?)", message_data)  #écrire le message dans la bdd
-        DB.conn.commit()
 
+    # check that content isn't empty
+    if content == "":
         return {
-            "status": "success",
-            "id": message_data[0],
-            "sender_uid": sender_uid,
-            "receiver_uid": receiver_uid,
-            "timestamp": str(date),
-            "seen": 0
+            "status": "error",
+            "code": "0003"
+        }
+    
+    # check that receiver aren't blocked
+    if is_blocked(receiver_uid, sender_uid) == True :
+        return {
+            "status": "error",
+            "code": "0004"
         }
 
-"""LIRE LES MESSAGES"""
+    # check that users are in contacts
+    if in_contacts(sender_uid, receiver_uid) == False :
+        return {
+            "status": "error",
+            "code": "0005"
+        }
+
+    sending_date = datetime.datetime.now() #Date d'envoi du message : YYYY-MM-DD hh:mm:ss
+    message_id = uuid.uuid1().hex
+
+    cur = DB.conn.cursor()
+    cur.execute("INSERT INTO messages(id, timestamp, sender_uid, receiver_uid, content, seen) values (?,?,?,?,?,?)", (
+        message_id,
+        sending_date,
+        sender_uid,
+        receiver_uid,
+        content,
+        0
+    ))
+    DB.conn.commit()
+
+    return {
+        "status": "success",
+        "id": message_id,
+        "sender_uid": sender_uid,
+        "receiver_uid": receiver_uid,
+        "timestamp": str(sending_date),
+        "seen": 0
+    }
+
 def get_messages(sender_uid, receiver_uid, limit, offset): #limit = nombre de messages à afficher; offset = point de départ; pour avoir les 10 derniers messages : limit = 10, offset = 0 ; pour avoir les messages 16 à 20 (en partant de la fin) : limit = 5, offset = 15
+    """
+    Recover a conversation between two users
+
+    limit is the limit of the message to be displayed
+    offset is the starting index (e.g. 0 for the first, 10 to cut the first 10)
+    """
 
     cur = DB.conn.cursor()
     cur.execute('SELECT id, sender_uid, timestamp, content, seen FROM messages WHERE sender_uid = ? AND receiver_uid = ? OR sender_uid = ? AND receiver_uid = ? ORDER BY timestamp ASC LIMIT ? OFFSET ?',
-         (sender_uid, receiver_uid, receiver_uid, sender_uid, str(limit), str(offset))
-    ) #retrouver les messages dans la bdd
+        (
+            sender_uid, 
+            receiver_uid, 
+            receiver_uid, 
+            sender_uid, 
+            str(limit), 
+            str(offset)
+        )
+    )
 
     rows = cur.fetchall()
 
@@ -87,10 +113,15 @@ def get_messages(sender_uid, receiver_uid, limit, offset): #limit = nombre de me
                 "seen": rows[i][4]
             } for i in range(len(rows))
         ]
-    }  #renvoi des messages
+    }
 
-"""METTRE MESSAGES AU STATUT VU"""
 def set_messages_seen(uid, message_ids):
+    """
+    Sets the given messages to seen status
+
+    Take an array of messages ids
+    """
+
     cur = DB.conn.cursor()
 
     message_ids = message_ids.split(",")
