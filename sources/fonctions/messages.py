@@ -36,7 +36,7 @@ def send_message(sender_uid, receiver_uid, content):
 
     #test if user is in contacts
     receiver_profile = get_profile(receiver_uid)
-    if in_contacts(sender_uid, receiver_uid) == False and receiver_profile['type'] != bot :
+    if in_contacts(sender_uid, receiver_uid) == False and receiver_profile['type'] != 'bot' :
         return {
             "status": "error",
             "code": "0005"
