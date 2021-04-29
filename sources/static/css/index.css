@@ -1,0 +1,88 @@
+body {
+    background: #72a98f;
+    margin: 0;
+    height: 100%;
+    display: flex;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    scrollbar-width: thin;
+    scrollbar-color: #2e2e2e #111111;
+}
+
+#content-box {
+    background: #111111;
+    margin: 15px;
+    flex: 1;
+    border-radius: 15px;
+    box-shadow: 1px 1px 5px #2b2b2b, -1px -1px 5px #1e1e1e;
+    display: flex;
+    overflow: hidden;
+    height: calc(100vh - 30px);
+
+    background-image: url(/static/imgs/message_placeholder.svg);
+    background-repeat: no-repeat;
+    background-position: bottom;
+    background-size: cover;
+}
+
+#content {
+    overflow: auto;
+    padding: 15px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.7);
+    width: 100%;
+}
+
+.title {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+
+.title img {
+    width: 100px;
+    margin-right: 20px;
+}
+
+.presentation {
+    font-size: 1.6em;
+    text-align: center;
+}
+.presentation .green {
+    font-weight: bold;
+    color: #72a98f;
+}
+
+.access-button-wrapper {
+    text-align: center;
+    margin: 100px 0px;
+}
+.access-button {
+    background-color: #72a98f;
+    color: #fff;
+    padding: 15px 25px;
+    border-radius: 50px;
+    font-size: 1.3em;
+    font-weight: bold;
+    text-decoration: none;
+}
+.access-button:hover {
+    text-decoration: underline;
+}
+
+.text {
+    font-size: 1.2em;
+}
+
+.text a {
+    color: #72a98f;
+}
+
+.preview-wrapper {
+    text-align: center;
+}
+.preview-wrapper img {
+    max-width: 700px;
+    width: 100%;
+}
