@@ -1,4 +1,4 @@
-from flask import Flask, render_template, safe_join, request, jsonify
+from flask import Flask, render_template, safe_join, request, jsonify, url_for, redirect
 from flask_restful import Resource, Api
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 import jwt
@@ -94,10 +94,18 @@ api = Api(app, prefix="/api/v1")
 # add socket.io
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
+# index page
+@app.route("/")
+def index_page():
+    return render_template("index.html")
 # application page
 @app.route("/app")
 def app_page():
     return render_template("app.html")
+# 404 redirection
+@app.errorhandler(404)
+def page_not_found(e):
+    return redirect(url_for("index_page"))
 
 # API ENDPOINTS :
 
