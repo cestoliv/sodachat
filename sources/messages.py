@@ -51,10 +51,14 @@ def send_message(sender_uid, receiver_uid, content):
 
     # check that users are in contacts
     if in_contacts(sender_uid, receiver_uid) == False :
-        return {
-            "status": "error",
-            "code": "0005"
-        }
+        if receiver_profile['type'] != "bot":
+            # send a message to a bot
+            sender_profile = get_profile(sender_uid) # sender must exist
+            if sender_profile["type"] != "bot":
+                return {
+                    "status": "error",
+                    "code": "0005"
+                }
 
     sending_date = datetime.datetime.now() #Date d'envoi du message : YYYY-MM-DD hh:mm:ss
     message_id = uuid.uuid1().hex
